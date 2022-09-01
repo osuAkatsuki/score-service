@@ -78,11 +78,11 @@ class Leaderboard:
     def remove_user(self, user_id: int) -> None:
         for score in self.scores:
             if score.user_id == user_id:
-                self.scores.remove(score)
                 if score not in self.scores:
                     print("\x1b[0;91mFound user to remove but not the score\x1b[0m")
                 else:
                     print("\x1b[0;92mFound score to remove\x1b[0m")
+                self.scores.remove(score)
 
                 break
         else:
