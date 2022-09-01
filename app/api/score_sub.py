@@ -176,12 +176,6 @@ async def submit_score(
         if score_exists:
             return b"error: no"
 
-        if user.id == 1001:
-            import cProfile
-
-            prof = cProfile.Profile()
-            prof.enable()
-
         osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
         local_osu_file_exists = await app.usecases.performance.check_local_file(
             osu_file_path,
@@ -437,10 +431,5 @@ async def submit_score(
     # logging.info(
     #     f"{user} submitted a {score.pp:.2f}pp {score.mode!r} score on {beatmap.song_name} in {formatted_time}",
     # )
-
-    if user.id == 1001:
-        prof.disable()
-        prof.dump_stats("/tmp/profile.pstats")
-        print("\x1b[0;95mDumped profile stats\x1b[0m")
 
     return "|".join(submission_charts).encode()

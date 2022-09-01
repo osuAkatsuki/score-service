@@ -72,6 +72,12 @@ def init_events(asgi_app: FastAPI) -> None:
 
         logging.info("Server has started!")
 
+        import cProfile
+
+        global prof
+        prof = cProfile.Profile()
+        prof.enable()
+
     @asgi_app.on_event("shutdown")
     async def on_shutdown() -> None:
         await app.state.cancel_tasks()
@@ -88,6 +94,16 @@ def init_events(asgi_app: FastAPI) -> None:
         await ctx_stack.aclose()
 
         logging.info("Server has shutdown!")
+        global prof
+
+        prof.disable()
+        prof.dump_stats("/tmp/profile.pstats")
+        print("\x1b[0;95mDumped profile stats\x1b[0m")
+        import os
+
+        os.system(
+            "gprof2dot -f pstats /tmp/profile.pstats | dot -Tpng -o /home/akatsuki/output.png"
+        )
 
     @asgi_app.middleware("http")
     async def http_middleware(
