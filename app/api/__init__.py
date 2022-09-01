@@ -37,6 +37,21 @@ router.add_api_route(
     methods=["POST"],
 )
 
+
+@router.get("/web/ohdeargod/{md5}")
+async def ohdeargod(md5: str):
+    from app.usecases.leaderboards import fetch
+    from app.usecases.beatmap import fetch_by_md5
+    from app.constants.mode import Mode
+
+    bmap = await fetch_by_md5(md5)
+    if not bmap:
+        return ORJSONResponse({"error": "Beatmap not found"})
+
+    scores = await fetch(bmap, Mode.STD_RX)
+    return ORJSONResponse({"scores": scores})
+
+
 router.add_api_route("/web/osu-getreplay.php", replays.get_replay)
 router.add_api_route("/web/replays/{score_id}", replays.get_full_replay)
 
