@@ -78,15 +78,19 @@ class Leaderboard:
     def remove_user(self, user_id: int) -> None:
         for score in self.scores:
             if score.user_id == user_id:
-                if score not in self.scores:
-                    print("\x1b[0;91mFound user to remove but not the score\x1b[0m")
-                else:
-                    print("\x1b[0;92mFound score to remove\x1b[0m")
+                if user_id in (1001, 46531):
+                    if score not in self.scores:
+                        print(
+                            f"\x1b[0;91mFound user to remove but not the score - {user_id}\x1b[0m"
+                        )
+                    else:
+                        print(f"\x1b[0;92mFound score to remove - {user_id}\x1b[0m")
                 self.scores.remove(score)
 
                 break
         else:
-            print("\x1b[0;91mDID NOT FIND SCORE TO REMOVE\x1b[0m")
+            if user_id in (1001, 46531):
+                print(f"\x1b[0;91mDID NOT FIND SCORE TO REMOVE - {user_id}\x1b[0m")
 
     def sort(self) -> None:
         if self.mode > Mode.MANIA:
