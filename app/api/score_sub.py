@@ -256,6 +256,7 @@ async def submit_score(
         except Exception:
             score.using_patcher = False
 
+        # update the database
         score.id = await app.state.services.write_database.execute(
             (
                 # TODO: add playtime
@@ -266,6 +267,11 @@ async def submit_score(
             ),
             score.db_dict,
         )
+
+        # update the cache
+        if score.old_best is not None:
+            leaderboard.remove_score(score.old_best)
+        leaderboard.add_score(score)
 
     # update most played
     await app.state.services.write_database.execute(
@@ -328,8 +334,6 @@ async def submit_score(
             stats.max_combo = score.max_combo
 
         if score.status == ScoreStatus.BEST:
-            leaderboard.replace_user_score(score)
-
             if score.pp:
                 await app.usecases.stats.full_recalc(stats, score.pp)
 
@@ -352,27 +356,26 @@ async def submit_score(
 
     if score.status == ScoreStatus.BEST:
         score.rank = await leaderboard.find_score_rank(score.user_id, score.id)
+
+        if (
+            score.rank == 1
+            and beatmap.has_leaderboard
+            and not user.privileges.is_restricted
+        ):
+            asyncio.create_task(
+                app.usecases.score.handle_first_place(
+                    score,
+                    beatmap,
+                    user,
+                ),
+            )
     elif score.status == ScoreStatus.SUBMITTED:
         score.rank = await leaderboard.whatif_placement(
             score.user_id,
             score.pp if score.mode > Mode.MANIA else score.score,
         )
 
-    if (
-        score.rank == 1
-        and score.status == ScoreStatus.BEST
-        and beatmap.has_leaderboard
-        and not user.privileges.is_restricted
-    ):
-        asyncio.create_task(
-            app.usecases.score.handle_first_place(
-                score,
-                beatmap,
-                user,
-            ),
-        )
-
-    if score.old_best:
+    if score.old_best is not None:
         beatmap_ranking_chart = (
             chart_entry("rank", score.old_best.rank, score.rank),
             chart_entry("rankedScore", score.old_best.score, score.score),

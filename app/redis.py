@@ -47,7 +47,7 @@ async def handle_player_wipe(payload: str) -> None:
 
     for beatmap in beatmaps:
         if leaderboard := beatmap.leaderboards.get(mode):
-            leaderboard.remove_user(user_id)
+            leaderboard.remove_user_scores(user_id)
 
     logging.info(f"Handled wipe for user ID {user_id} on {mode!r}")
 

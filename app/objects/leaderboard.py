@@ -28,8 +28,34 @@ class Leaderboard:
     def __len__(self) -> int:
         return len(self.scores)
 
-    def remove_score_index(self, index: int) -> None:
-        self.scores.pop(index)
+    def add_score(self, score: Score) -> None:
+        # TODO: improve with bisection
+        self.scores.append(score)
+        self.sort()
+
+    def remove_score(self, score: Score) -> None:
+        self.scores.remove(score)
+
+    def remove_user_scores(self, user_id: int) -> None:
+        for score in self.scores:
+            if score.user_id == user_id:
+                self.scores.remove(score)
+
+                # NOTE: while this is named "remove_user_score*s*",
+                # a user may only actually have a single score
+                break
+
+    def replace_score(self, score: Score) -> None:
+        self.remove_user_scores(score.user_id)
+        self.add_score(score)
+
+    def sort(self) -> None:
+        if self.mode > Mode.MANIA:
+            sort = lambda score: score.pp
+        else:
+            sort = lambda score: score.score
+
+        self.scores = sorted(self.scores, key=sort, reverse=True)
 
     async def find_user_score(
         self,
@@ -75,20 +101,6 @@ class Leaderboard:
 
         return scores
 
-    def remove_user(self, user_id: int) -> None:
-        for score in self.scores:
-            if score.user_id == user_id:
-                self.scores.remove(score)
-                break
-
-    def sort(self) -> None:
-        if self.mode > Mode.MANIA:
-            sort = lambda score: score.pp
-        else:
-            sort = lambda score: score.score
-
-        self.scores = sorted(self.scores, key=sort, reverse=True)
-
     async def whatif_placement(
         self,
         user_id: int,
@@ -106,8 +118,3 @@ class Leaderboard:
                 return idx + 1
 
         return 1
-
-    def replace_user_score(self, score: Score) -> None:
-        self.remove_user(score.user_id)
-        self.scores.append(score)
-        self.sort()
