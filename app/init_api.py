@@ -24,8 +24,6 @@ import app.state
 import app.usecases
 import config
 
-ctx_stack = contextlib.AsyncExitStack()
-
 
 def init_events(asgi_app: FastAPI) -> None:
     @asgi_app.on_event("startup")
@@ -38,15 +36,16 @@ def init_events(asgi_app: FastAPI) -> None:
             json_serialize=lambda x: orjson.dumps(x).decode(),
         )
 
-        app.state.services.s3_client = await ctx_stack.enter_async_context(
-            aiobotocore.session.get_session().create_client(  # type: ignore
-                "s3",
+
+        session = aiobotocore.session.get_session()
+        app.state.services.s3_client = await session._create_client(  # type: ignore
+            service_name="s3",
                 region_name=config.AWS_REGION,
                 aws_access_key_id=config.AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
                 endpoint_url=config.AWS_ENDPOINT_URL,
-            ),
         )
+        await app.state.services.s3_client.__aenter__()
 
         app.state.services.ftp_client = ftpretty(
             config.FTP_HOST,
@@ -90,10 +89,10 @@ def init_events(asgi_app: FastAPI) -> None:
 
         app.state.services.ftp_client.close()
 
+        await app.state.services.s3_client.__aexit__(None, None, None)
+
         await app.state.services.amqp_channel.close()
         await app.state.services.amqp.close()
-
-        await ctx_stack.aclose()
 
         logging.info("Server has shutdown!")
 

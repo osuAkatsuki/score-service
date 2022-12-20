@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from typing import Mapping
-from typing import Optional
-from typing import Protocol
+from typing import TYPE_CHECKING
 
 import aio_pika
 import aiohttp
@@ -12,13 +11,16 @@ import databases
 from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
 
+if TYPE_CHECKING:
+    from types_aiobotocore_s3.client import S3Client
+
 import config
 
 
 redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 
+s3_client: S3Client
 ftp_client: ftpretty
-
 http: aiohttp.ClientSession
 
 amqp: aio_pika.RobustConnection
@@ -98,25 +100,3 @@ database = Database(
         db=config.WRITE_DB_NAME,
     ),
 )
-
-
-class S3Client(Protocol):
-    # TODO: could do the types correctly? lol
-    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.put_object
-    async def put_object(self, Bucket: str, Key: str, Body: bytes):
-        ...
-
-    async def generate_presigned_url(
-        self,
-        ClientMethod: str,
-        Params: Optional[Mapping[str, Any]] = None,
-        ExpiresIn: int = 3600,
-        HttpMethod: Optional[str] = None,  # TODO: literal?
-    ) -> str:
-        ...
-
-    async def close(self) -> None:
-        ...
-
-
-s3_client: S3Client
