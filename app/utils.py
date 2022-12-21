@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import logging
-import os
 from typing import Optional
 from typing import Union
 
@@ -9,22 +7,6 @@ from aiohttp import ClientSession
 
 import app.state
 import config
-from app.objects.path import Path
-
-REQUIRED_FOLDERS = (
-    config.DATA_DIR,
-    f"{config.DATA_DIR}/beatmaps",
-    f"{config.DATA_DIR}/screenshots",
-)
-
-DATA_PATH = Path(config.DATA_DIR)
-
-
-def ensure_directory_structure() -> None:
-    for folder in REQUIRED_FOLDERS:
-        if not os.path.exists(folder):
-            logging.warning(f"Creating data folder {folder}...")
-            os.makedirs(folder, exist_ok=True)
 
 
 def make_safe(username: str) -> str:

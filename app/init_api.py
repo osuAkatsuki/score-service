@@ -40,10 +40,10 @@ def init_events(asgi_app: FastAPI) -> None:
         session = aiobotocore.session.get_session()
         app.state.services.s3_client = await session._create_client(  # type: ignore
             service_name="s3",
-                region_name=config.AWS_REGION,
-                aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-                endpoint_url=config.AWS_ENDPOINT_URL,
+            region_name=config.AWS_REGION,
+            aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+            endpoint_url=config.AWS_ENDPOINT_URL,
         )
         await app.state.services.s3_client.__aenter__()
 

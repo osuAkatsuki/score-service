@@ -14,8 +14,6 @@ import config
 
 
 def main() -> int:
-    app.utils.ensure_directory_structure()
-
     uvicorn.run(
         "app.init_api:asgi_app",
         reload=config.LOG_LEVEL == logging.DEBUG,
