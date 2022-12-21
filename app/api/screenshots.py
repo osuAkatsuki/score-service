@@ -14,40 +14,36 @@ import app.state
 import app.utils
 import config
 from app.models.user import User
-from app.objects.path import Path
 from app.usecases.user import authenticate_user
 
-SS_DELAY = 10  # Seconds per screenshot.
-FS_LIMIT = 500_000
-ERR_RESP = "https://akatsuki.pw/"
-SS_NAME_LEN = 8
-
-SS_PATH = Path(config.DATA_DIR) / "screenshots"
+UPLOAD_INTERVAL = 10
+SIZE_LIMIT = 500_000
+ERR_RESP = "https://akatsuki.pw/" # TODO: is this right?
+MAX_NAME_LENGTH = 8
 
 
 async def is_ratelimit(ip: str) -> bool:
     """Checks if an IP is ratelimited from taking screenshots. If not,
     it establishes the limit in Redis."""
 
-    rl_key = "less:ss_limit:" + ip
-    if await app.state.services.redis.get(rl_key):
+    key = "less:ss_limit:" + ip
+    if await app.state.services.redis.get(key):
         return True
 
-    await app.state.services.redis.setex(rl_key, SS_DELAY, 1)
+    await app.state.services.redis.setex(key, UPLOAD_INTERVAL, 1)
     return False
 
 
-AV_CHARS = string.ascii_letters + string.digits
+FILENAME_CHARSET = string.ascii_letters + string.digits
 
 
 def gen_rand_str(len: int) -> str:
-
-    return "".join(random.choice(AV_CHARS) for _ in range(len))
+    return "".join(random.choice(FILENAME_CHARSET) for _ in range(len))
 
 
 async def upload_screenshot(
     user: User = Depends(authenticate_user(Form, "u", "p")),
-    screenshot_file: UploadFile = File(None, alias="ss"),
+    screenshot_file: UploadFile = File(..., alias="ss"),
     user_agent: str = Header(...),
     x_real_ip: str = Header(...),
 ):
@@ -64,7 +60,7 @@ async def upload_screenshot(
         return ERR_RESP
 
     content = await screenshot_file.read()
-    if content.__sizeof__() > FS_LIMIT:
+    if len(content) > SIZE_LIMIT:
         return ERR_RESP
 
     if content[6:10] in (b"JFIF", b"Exif"):
@@ -76,13 +72,34 @@ async def upload_screenshot(
         return ERR_RESP
 
     while True:
-        file_name = f"{gen_rand_str(SS_NAME_LEN)}.{ext}"
+        file_name = f"{gen_rand_str(MAX_NAME_LENGTH)}.{ext}"
 
-        ss_path = SS_PATH / file_name
-        if not ss_path.exists():
+        # check if file already exists on s3
+        try:
+            await app.state.services.s3_client.get_object(
+                Bucket=config.AWS_BUCKET_NAME,
+                Key=f"screenshots/{file_name}",
+            )
+        except Exception as exc: # TODO: more specific err
+            print("Exc type", exc)
+            screenshot_file_found = False
+        else:
+            screenshot_file_found = True
+
+        if not screenshot_file_found:
             break
 
-    ss_path.write_bytes(content)
+    # TODO: ideally we should do exponential backoff retries here incase s3 is down,
+    # but the osu! client will probably freak out if we don't send a response back in a timely matter :(
+    try:
+        await app.state.services.s3_client.put_object(
+            Bucket=config.AWS_BUCKET_NAME,
+            Key=f"screenshots/{file_name}",
+            Body=content,
+        )
+    except Exception as exc:
+        print("Exc type", exc)
+        return ERR_RESP
 
     logging.info(f"{user} has uploaded screenshot {file_name}")
     return file_name
