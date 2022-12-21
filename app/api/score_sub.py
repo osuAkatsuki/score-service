@@ -7,6 +7,7 @@ import time
 from base64 import b64decode
 from base64 import b64encode
 from copy import copy
+import hashlib
 from datetime import datetime
 from typing import NamedTuple
 from typing import Optional
@@ -83,10 +84,6 @@ def decrypt_score_data(
     client_hash_decoded = aes.decrypt(b64decode(client_hash_b64)).decode()
 
     return score_data, client_hash_decoded
-
-
-DATA_PATH = Path(config.DATA_DIR)
-MAPS_PATH = DATA_PATH / "beatmaps"
 
 
 T = TypeVar("T", bound=Union[int, float])
@@ -181,14 +178,43 @@ async def submit_score(
         if score_exists:
             return b"error: no"
 
-        osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
-        local_osu_file_exists = await app.usecases.performance.check_local_file(
-            osu_file_path,
-            beatmap.id,
-            beatmap.md5,
+    # make sure beatmap file exists on s3
+    try:
+        s3_response = await app.state.services.s3_client.get_object(
+            Bucket=config.AWS_BUCKET_NAME,
+            Key=f"beatmaps/{beatmap.id}.osu",
         )
+    except Exception as exc: # TODO: more specific err
+        print("Exc type", exc)
+        beatmap_file_found = False
+    else:
+        # file was found on s3; make sure it's up to date
+        response_body = await s3_response["Body"].read()
+        is_up_to_date = hashlib.md5(response_body).hexdigest() == beatmap.md5
 
-        if local_osu_file_exists:
+        if is_up_to_date:
+            beatmap_file_found = True
+        else:
+            # not up to date - fetch from osu!api
+            async with app.state.services.http.get(
+                f"https://old.ppy.sh/osu/{beatmap.id}",
+            ) as response:
+                if response.status != 200:
+                    beatmap_file_found = False
+                else:
+                    try:
+                        await app.state.services.s3_client.put_object(
+                            Bucket=config.AWS_BUCKET_NAME,
+                            Key=f"beatmaps/{beatmap.id}.osu",
+                            Body=await response.read(),
+                        )
+                    except Exception as exc:
+                        print("Exc type", exc)
+                        beatmap_file_found = False
+                    else:
+                        beatmap_file_found = True
+
+        if beatmap_file_found:
             score.pp, score.sr = await app.usecases.performance.calculate_performance(
                 beatmap.id,
                 score.mode,

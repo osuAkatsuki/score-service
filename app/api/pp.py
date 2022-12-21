@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import logging
 from typing import Optional
+import hashlib
 
 from fastapi import Query
 from fastapi import status
 from fastapi.responses import ORJSONResponse
 
-import app.usecases
+import app.state.services
 import config
+import app.usecases
 from app.constants.mode import Mode
 from app.constants.mods import Mods
-from app.objects.path import Path
 from app.usecases.performance import PerformanceScore
 
 COMMON_PP_PERCENTAGES = (
@@ -23,8 +24,6 @@ COMMON_PP_PERCENTAGES = (
     95.0,
     90.0,
 )
-
-MAPS_PATH = Path(config.DATA_DIR) / "beatmaps"
 
 
 async def calculate_pp(
@@ -48,12 +47,43 @@ async def calculate_pp(
 
     combo = combo if combo else beatmap.max_combo
 
-    file_path = MAPS_PATH / f"{beatmap.id}.osu"
-    if not await app.usecases.performance.check_local_file(
-        file_path,
-        beatmap.id,
-        beatmap.md5,
-    ):
+    # make sure beatmap file exists on s3
+    try:
+        s3_response = await app.state.services.s3_client.get_object(
+            Bucket=config.AWS_BUCKET_NAME,
+            Key=f"beatmaps/{beatmap.id}.osu",
+        )
+    except Exception as exc: # TODO: more specific err
+        print("Exc type", exc)
+        beatmap_file_found = False
+    else:
+        # file was found on s3; make sure it's up to date
+        response_body = await s3_response["Body"].read()
+        is_up_to_date = hashlib.md5(response_body).hexdigest() == beatmap.md5
+
+        if is_up_to_date:
+            beatmap_file_found = True
+        else:
+            # not up to date - fetch from osu!api
+            async with app.state.services.http.get(
+                f"https://old.ppy.sh/osu/{beatmap.id}",
+            ) as response:
+                if response.status != 200:
+                    beatmap_file_found = False
+                else:
+                    try:
+                        await app.state.services.s3_client.put_object(
+                            Bucket=config.AWS_BUCKET_NAME,
+                            Key=f"beatmaps/{beatmap.id}.osu",
+                            Body=await response.read(),
+                        )
+                    except Exception as exc:
+                        print("Exc type", exc)
+                        beatmap_file_found = False
+                    else:
+                        beatmap_file_found = True
+
+    if not beatmap_file_found:
         return ORJSONResponse(
             content={"message": "Invalid/non-existent beatmap id."},
             status_code=status.HTTP_400_BAD_REQUEST,
