@@ -8,7 +8,6 @@ import aio_pika
 import aiohttp
 import aioredis
 import databases
-from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
 
 if TYPE_CHECKING:
@@ -20,7 +19,6 @@ import config
 redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 
 s3_client: S3Client
-ftp_client: ftpretty
 http: aiohttp.ClientSession
 
 amqp: aio_pika.RobustConnection

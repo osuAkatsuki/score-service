@@ -16,7 +16,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
-from ftpretty import ftpretty
 from starlette.middleware.base import RequestResponseEndpoint
 
 import app.redis
@@ -46,12 +45,6 @@ def init_events(asgi_app: FastAPI) -> None:
             endpoint_url=config.AWS_ENDPOINT_URL,
         )
         await app.state.services.s3_client.__aenter__()
-
-        app.state.services.ftp_client = ftpretty(
-            config.FTP_HOST,
-            config.FTP_USER,
-            config.FTP_PASS,
-        )
 
         app.state.services.amqp = await aio_pika.connect_robust(
             f"amqp://{config.AMQP_USER}:{config.AMQP_PASS}@{config.AMQP_HOST}:{config.AMQP_PORT}/",
@@ -86,8 +79,6 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.redis.close()
 
         await app.state.services.http.close()
-
-        app.state.services.ftp_client.close()
 
         await app.state.services.s3_client.__aexit__(None, None, None)
 

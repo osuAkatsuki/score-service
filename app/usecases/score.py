@@ -138,18 +138,10 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
     ) as session:
         raw_data = await session.read()
         if session.status != 200 or not raw_data:
-            try:
-                raw_data = app.state.services.ftp_client.get(
-                    f"/replays/replay_{score.id}.osr",
-                )
-                if not raw_data:
-                    raise Exception("No replay found!")
-            except Exception as e:
-                # TODO: assert the error code is "not found"?
-                logging.error(
-                    f"Requested replay ID {score.id}, but no file could be found: {e}",
-                )
-                return
+            logging.error(
+                f"Requested replay ID {score.id}, but no file could be found: {e}",
+            )
+            return
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if not username:

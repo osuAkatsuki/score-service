@@ -39,18 +39,10 @@ async def get_replay(
     ) as resp:
         replay_data = await resp.read()
         if resp.status != 200 or not replay_data:
-            try:
-                replay_data = app.state.services.ftp_client.get(
-                    f"/replays/replay_{score_id}.osr",
-                )
-                if not replay_data:
-                    raise Exception("No replay found")
-            except Exception:
-                # TODO: assert the error code is "not found"?
-                logging.error(
-                    f"Requested replay ID {score_id}, but no file could be found",
-                )
-                return b""
+            logging.error(
+                f"Requested replay ID {score_id}, but no file could be found",
+            )
+            return b""
 
     if db_score["userid"] != user.id:
         asyncio.create_task(

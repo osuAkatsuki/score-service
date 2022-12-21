@@ -43,11 +43,6 @@ AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
 AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL")
 AWS_BUCKET_NAME = config("AWS_BUCKET_NAME")
 
-FTP_HOST = config("FTP_HOST")
-FTP_PORT = config("FTP_PORT", cast=int)
-FTP_USER = config("FTP_USER")
-FTP_PASS = config("FTP_PASS")
-
 AMQP_HOST = config("AMQP_HOST")
 AMQP_PORT = config("AMQP_PORT", cast=int)
 AMQP_USER = config("AMQP_USER")

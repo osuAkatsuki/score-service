@@ -7,7 +7,6 @@ cryptography
 databases[asyncmy]
 ddtrace
 fastapi
-ftpretty
 orjson
 py3rijndael
 python-multipart
