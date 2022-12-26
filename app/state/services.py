@@ -103,16 +103,17 @@ database = Database(
     ),
 )
 
-def redis_dsn(host: str, port: int, username: str | None, password: str | None, db: int | None = None) -> str:
+def redis_dsn(driver: str, host: str, port: int, username: str | None, password: str | None, db: int | None = None) -> str:
     if username is None and password is None:
-        base = f"redis://{host}:{port}/{db}"
+        base = f"{driver}://{host}:{port}/{db}"
     else:
-        base = f"redis://{username}:{password}@{host}:{port}/{db}"
+        base = f"{driver}://{username}:{password}@{host}:{port}/{db}"
 
     return f"{base}/{db}" if db else base
 
 redis: aioredis.Redis = aioredis.from_url(
     url=redis_dsn(
+        driver="rediss",
         host=config.REDIS_HOST,
         port=config.REDIS_PORT,
         username=config.REDIS_USER,
