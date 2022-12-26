@@ -23,6 +23,11 @@ READ_DB_USER = config("READ_DB_USER")
 READ_DB_PASS = config("READ_DB_PASS")
 READ_DB_NAME = config("READ_DB_NAME")
 
+REDIS_HOST = config("REDIS_HOST")
+REDIS_PORT = config("REDIS_PORT", cast=int)
+REDIS_USER = config("REDIS_USER")
+REDIS_PASS = config("REDIS_PASS")
+
 DIRECT_URL = config("DIRECT_URL", default="https://catboy.best/api")
 
 API_KEYS_POOL: list[str] = list(config("API_KEYS_POOL", cast=CommaSeparatedStrings))
