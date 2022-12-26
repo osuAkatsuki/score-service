@@ -103,9 +103,9 @@ database = Database(
     ),
 )
 
-def redis_dsn(host: str, port: int, username: str | None, password: str | None, db: int | None) -> str:
+def redis_dsn(host: str, port: int, username: str | None, password: str | None, db: int | None = None) -> str:
     if username is None and password is None:
-        base =  f"redis://{host}:{port}/{db}"
+        base = f"redis://{host}:{port}/{db}"
     else:
         base = f"redis://{username}:{password}@{host}:{port}/{db}"
 
