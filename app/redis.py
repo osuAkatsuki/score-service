@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Awaitable
 from typing import Callable
-from typing import Optional
 from typing import TypedDict
 
-import aioredis.client
 import orjson
 
 import app.state
@@ -17,6 +14,9 @@ from app.constants.ranked_status import RankedStatus
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
 
+class RedisMessage(TypedDict):
+    channel: bytes
+    data: bytes
 
 def register_pubsub(channel: str):
     def decorator(handler: PUBSUB_HANDLER):
@@ -26,16 +26,16 @@ def register_pubsub(channel: str):
 
 
 @register_pubsub("peppy:ban")
-async def handle_privilege_change(payload: str) -> None:
-    user_id = int(payload)
+async def handle_privilege_change(message: RedisMessage) -> None:
+    user_id = int(message["data"])
     await app.usecases.privileges._get_privileges(user_id)
 
     logging.info(f"Updated privileges for user ID {user_id}")
 
 
 @register_pubsub("peppy:wipe")
-async def handle_player_wipe(payload: str) -> None:
-    user_id, rx_int, mode_int = (int(part) for part in payload.split(","))
+async def handle_player_wipe(message: RedisMessage) -> None:
+    user_id, rx_int, mode_int = (int(part) for part in message["data"].split(","))
     mods_int = {
         0: 0,  # vn = nomod
         1: 128,  # rx = relax
@@ -57,8 +57,8 @@ class UsernameChange(TypedDict):
 
 
 @register_pubsub("peppy:change_username")
-async def handle_username_change(payload: str) -> None:
-    data: UsernameChange = orjson.loads(payload)
+async def handle_username_change(message: RedisMessage) -> None:
+    data: UsernameChange = orjson.loads(message["data"])
     user_id = int(data["userID"])
 
     username = await app.usecases.usernames.update_username(user_id)
@@ -75,8 +75,8 @@ class UpdateScorePP(TypedDict):
 
 
 @register_pubsub("cache:update_score_pp")
-async def handle_update_score_pp(payload: str) -> None:
-    data: UpdateScorePP = orjson.loads(payload)
+async def handle_update_score_pp(message: RedisMessage) -> None:
+    data: UpdateScorePP = orjson.loads(message["data"])
 
     beatmap = app.usecases.beatmap.id_from_cache(data["beatmap_id"])
     if beatmap is None:
@@ -101,7 +101,7 @@ async def handle_update_score_pp(payload: str) -> None:
 
 
 @register_pubsub("cache:map_update")
-async def handle_beatmap_status_change(payload: str) -> None:
+async def handle_beatmap_status_change(message: RedisMessage) -> None:
     """Pubsub to handle beatmap status changes
 
     This pubsub should be called when a beatmap's status updates
@@ -109,7 +109,7 @@ async def handle_beatmap_status_change(payload: str) -> None:
 
     It should be published with the payload being the beatmap's md5 and new status
     """
-    beatmap_md5, _ = payload.split(",", maxsplit=1)
+    beatmap_md5, _ = message["data"].split(",", maxsplit=1)
 
     cached_beatmap = app.usecases.beatmap.md5_from_cache(beatmap_md5)
     if not cached_beatmap:
@@ -142,8 +142,8 @@ async def handle_beatmap_status_change(payload: str) -> None:
 
 
 @register_pubsub("api:update_clan")
-async def handle_clan_change(payload: str) -> None:
-    clan_id = int(payload)
+async def handle_clan_change(message: RedisMessage) -> None:
+    clan_id = int(message["data"])
 
     clan_users = await app.state.services.database.fetch_all(
         "SELECT user FROM user_clans WHERE clan = :id",
@@ -156,30 +156,6 @@ async def handle_clan_change(payload: str) -> None:
     logging.info(f"Updated tag for clan ID {clan_id}")
 
 
-class RedisMessage(TypedDict):
-    channel: bytes
-    data: bytes
-
-
-async def loop_pubsubs(pubsub: aioredis.client.PubSub) -> None:
-    while True:
-        try:
-            message: Optional[RedisMessage] = await pubsub.get_message(
-                ignore_subscribe_messages=True,
-                timeout=1.0,
-            )  # type: ignore
-            if message is not None:
-                if handler := app.state.PUBSUBS.get(message["channel"].decode()):
-                    await handler(message["data"].decode())
-
-            await asyncio.sleep(0.01)
-        except asyncio.TimeoutError:
-            pass
-
-
 async def initialise_pubsubs() -> None:
     pubsub = app.state.services.redis.pubsub()
-    await pubsub.subscribe(*[channel for channel in app.state.PUBSUBS.keys()])
-
-    pubsub_loop = asyncio.create_task(loop_pubsubs(pubsub))
-    app.state.tasks.add(pubsub_loop)
+    await pubsub.subscribe(**app.state.PUBSUBS)
