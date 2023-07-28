@@ -436,6 +436,7 @@ async def submit_score(
                     "privileges": user.privileges,
                     "country": user.country,
                 },
+                "source": "score-service",
             },
         ),
     )
@@ -490,6 +491,7 @@ async def submit_score(
                             "achievement_description": achievement.desc,
                         },
                         "score": score.db_dict,
+                        "source": "score-service",
                     },
                     time=int(time.time() * 1000),
                 ),

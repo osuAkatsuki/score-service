@@ -72,6 +72,7 @@ async def rate_map(
                 event_properties={
                     "beatmap_md5": map_md5,
                     "rating": rating,
+                    "source": "score-service",
                 },
                 time=int(time.time() * 1000),
             ),

@@ -108,6 +108,7 @@ async def osu_direct(
                 "page_num": page_num,
                 "mode": mode,
                 "ranked_status": ranked_status,
+                "source": "score-service",
             },
         ),
     )
@@ -144,6 +145,7 @@ async def beatmap_card(
             event_properties={
                 "map_set_id": map_set_id,
                 "map_id": map_id,
+                "source": "score-service",
             },
         ),
     )

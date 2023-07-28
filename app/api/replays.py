@@ -69,6 +69,7 @@ async def get_replay(
             event_properties={
                 "score_id": score_id,
                 "mode": mode,
+                "source": "score-service",
             },
         ),
     )

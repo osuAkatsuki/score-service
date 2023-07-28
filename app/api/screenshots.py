@@ -96,6 +96,7 @@ async def upload_screenshot(
                 "file_name": file_name,
                 "file_size": len(content),
                 "url": f"https://osu.akatsuki.pw/ss/{file_name}",
+                "source": "score-service",
             },
         ),
     )
