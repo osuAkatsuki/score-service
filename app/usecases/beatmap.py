@@ -188,18 +188,23 @@ async def set_from_database(set_id: int) -> list[Beatmap]:
 GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
 
 
-async def save(beatmap: Beatmap) -> None:
-    await app.state.services.database.execute(
-        (
-            "REPLACE INTO beatmaps (beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode, rating, "
-            "difficulty_std, difficulty_taiko, difficulty_ctb, difficulty_mania, max_combo, hit_length, bpm, playcount, "
-            "passcount, ranked, latest_update, ranked_status_freezed, file_name) VALUES (:beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, "
-            ":ar, :od, :mode, :rating, :difficulty_std, :difficulty_taiko, :difficulty_ctb, :difficulty_mania, :max_combo, :hit_length, :bpm, "
-            ":playcount, :passcount, :ranked, :latest_update, :ranked_status_freezed, :file_name)"
-        ),
-        beatmap.to_mapping,  # type: ignore
-    )
+import asyncmy.errors
 
+async def save(beatmap: Beatmap) -> None:
+    try:
+        await app.state.services.database.execute(
+            (
+                "REPLACE INTO beatmaps (beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode, rating, "
+                "difficulty_std, difficulty_taiko, difficulty_ctb, difficulty_mania, max_combo, hit_length, bpm, playcount, "
+                "passcount, ranked, latest_update, ranked_status_freezed, file_name) VALUES (:beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, "
+                ":ar, :od, :mode, :rating, :difficulty_std, :difficulty_taiko, :difficulty_ctb, :difficulty_mania, :max_combo, :hit_length, :bpm, "
+                ":playcount, :passcount, :ranked, :latest_update, :ranked_status_freezed, :file_name)"
+            ),
+            beatmap.to_mapping,  # type: ignore
+        )
+    except asyncmy.errors.DataError:
+        print("Song name:", beatmap.song_name)
+        raise
 
 async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
