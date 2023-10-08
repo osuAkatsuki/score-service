@@ -39,7 +39,7 @@ def init_events(asgi_app: FastAPI) -> None:
         # however it will fail if they have no password set
         # but this is still better than implicitly working as the default one
         should_send_redis_authentication = (
-            config.REDIS_PASS != "" or config.REDIS_USERNAME != "default"
+            config.REDIS_PASS != "" or config.REDIS_USER != "default"
         )
         app.state.services.redis = aioredis.Redis(
             host=config.REDIS_HOST,
