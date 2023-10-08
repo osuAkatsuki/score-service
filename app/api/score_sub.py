@@ -176,7 +176,7 @@ async def submit_score(
             "(score submit gate)",
         )
 
-    async with RedisLock("score_submission"):
+    async with RedisLock(f"score_submission:{score.online_checksum}"):
         score_exists = (
             await app.state.services.database.fetch_val(
                 f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
