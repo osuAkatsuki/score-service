@@ -20,5 +20,6 @@ class ScoreSubmissionRequest:
     replay_data_b64: str
     score_id: int
     user_id: int
+    osu_auth_token: Optional[str]
     mode_vn: int
     relax: int
