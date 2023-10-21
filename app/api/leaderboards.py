@@ -160,7 +160,7 @@ async def get_leaderboard(
     end = time.perf_counter_ns()
 
     logging.info(
-        f"Served leaderboard",
+        "Served leaderboard",
         extra={
             "username": user.name,
             "user_id": user.id,
