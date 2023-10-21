@@ -15,8 +15,8 @@ from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.models.score import Score
 from app.models.user import User
-from app.usecases.user import authenticate_user
 from app.repositories.leaderboards import LeaderboardScore
+from app.usecases.user import authenticate_user
 
 CUR_LB_VER = 4
 
@@ -145,7 +145,7 @@ async def get_leaderboard(
 
         if leaderboard.personal_best:
             response_lines.append(
-                format_leaderboard_score_string(mode, leaderboard.personal_best)
+                format_leaderboard_score_string(mode, leaderboard.personal_best),
             )
         else:
             response_lines.append("")
@@ -154,7 +154,7 @@ async def get_leaderboard(
             [
                 format_leaderboard_score_string(mode, score)
                 for score in leaderboard.scores
-            ]
+            ],
         )
 
     end = time.perf_counter_ns()

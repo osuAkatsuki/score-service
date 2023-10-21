@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from enum import IntEnum
-from typing import Literal
 from functools import cached_property
+from typing import Literal
 
 from app.constants.mods import Mods
 
