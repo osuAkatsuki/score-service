@@ -77,7 +77,7 @@ async def fetch_beatmap_leaderboard(
 
     query = f"""
         WITH RankedScores AS (
-            SELECT 
+            SELECT
                 c.tag,
                 users.username AS users_username,
                 s.id AS score_id,
@@ -102,20 +102,20 @@ async def fetch_beatmap_leaderboard(
                 s.patcher AS patcher,
                 s.pinned AS pinned,
                 row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
-            FROM {scores_table} s 
-            INNER JOIN users ON users.id = s.userid 
-            LEFT JOIN clans c ON users.clan_id = c.id 
-            INNER JOIN users_stats ON users_stats.id = s.userid 
-            WHERE 
-                s.beatmap_md5 = :beatmap_md5 
-                AND s.play_mode = :play_mode 
-                AND s.completed {completed_query_fragment} 
-                AND (users.privileges & 1 > 0 OR users.id = :requestee_user_id) 
+            FROM {scores_table} s
+            INNER JOIN users ON users.id = s.userid
+            LEFT JOIN clans c ON users.clan_id = c.id
+            INNER JOIN users_stats ON users_stats.id = s.userid
+            WHERE
+                s.beatmap_md5 = :beatmap_md5
+                AND s.play_mode = :play_mode
+                AND s.completed {completed_query_fragment}
+                AND (users.privileges & 1 > 0 OR users.id = :requestee_user_id)
                 {extra_query}
         )
-        SELECT 
+        SELECT
             CONCAT(IF(a.tag IS NOT NULL AND a.user_id != :requestee_user_id, CONCAT("[", a.tag, "] "), ""), a.users_username) `score_username`,
-            a.* 
+            a.*
         FROM (
             SELECT *, row_number() OVER (ORDER BY {sort_column} DESC) `score_rank`
             FROM RankedScores
@@ -158,7 +158,7 @@ async def fetch_user_score(
 
     query = f"""
         WITH RankedScores AS (
-            SELECT 
+            SELECT
                 c.tag,
                 users.username AS users_username,
                 s.id AS score_id,
@@ -183,15 +183,15 @@ async def fetch_user_score(
                 s.patcher AS patcher,
                 s.pinned AS pinned,
                 row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
-            FROM {scores_table} s 
-            INNER JOIN users ON users.id = s.userid 
-            LEFT JOIN clans c ON users.clan_id = c.id 
-            INNER JOIN users_stats ON users_stats.id = s.userid 
-            WHERE 
-                s.beatmap_md5 = :beatmap_md5 
-                AND s.play_mode = :play_mode 
-                AND s.completed {completed_query_fragment} 
-                AND (users.privileges & 1 > 0 OR users.id = :user_id) 
+            FROM {scores_table} s
+            INNER JOIN users ON users.id = s.userid
+            LEFT JOIN clans c ON users.clan_id = c.id
+            INNER JOIN users_stats ON users_stats.id = s.userid
+            WHERE
+                s.beatmap_md5 = :beatmap_md5
+                AND s.play_mode = :play_mode
+                AND s.completed {completed_query_fragment}
+                AND (users.privileges & 1 > 0 OR users.id = :user_id)
                 {extra_query}
         )
         SELECT
@@ -256,7 +256,7 @@ async def fetch_beatmap_leaderboard_score_count(
 
     query = f"""
         WITH RankedScores AS (
-            SELECT 
+            SELECT
                 c.tag,
                 users.username AS users_username,
                 s.id AS score_id,
@@ -281,18 +281,18 @@ async def fetch_beatmap_leaderboard_score_count(
                 s.patcher AS patcher,
                 s.pinned AS pinned,
                 row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
-            FROM {scores_table} s 
-            INNER JOIN users ON users.id = s.userid 
-            LEFT JOIN clans c ON users.clan_id = c.id 
-            INNER JOIN users_stats ON users_stats.id = s.userid 
-            WHERE 
-                s.beatmap_md5 = :beatmap_md5 
-                AND s.play_mode = :play_mode 
-                AND s.completed {completed_query_fragment} 
-                AND (users.privileges & 1 > 0 OR users.id = :requestee_user_id) 
+            FROM {scores_table} s
+            INNER JOIN users ON users.id = s.userid
+            LEFT JOIN clans c ON users.clan_id = c.id
+            INNER JOIN users_stats ON users_stats.id = s.userid
+            WHERE
+                s.beatmap_md5 = :beatmap_md5
+                AND s.play_mode = :play_mode
+                AND s.completed {completed_query_fragment}
+                AND (users.privileges & 1 > 0 OR users.id = :requestee_user_id)
                 {extra_query}
         )
-        SELECT 
+        SELECT
             COUNT(*)
         FROM (
             SELECT *, row_number() OVER (ORDER BY {sort_column} DESC) `score_rank`
