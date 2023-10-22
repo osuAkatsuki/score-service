@@ -84,7 +84,6 @@ async def find_score_rank(
     user_id: int,
     mode: Mode,
 ) -> int:
-    print(score_id_to_judge)
     leaderboard_score = await leaderboards_repository.fetch_score_on_leaderboard(
         score_id=score_id_to_judge,
         beatmap_md5=beatmap_md5,
