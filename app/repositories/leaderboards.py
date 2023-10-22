@@ -315,7 +315,6 @@ async def fetch_beatmap_leaderboard_score_count(
     query = f"""
         WITH RankedScores AS (
             SELECT
-                c.tag,
                 users.username AS users_username,
                 s.id AS score_id,
                 s.beatmap_md5 AS beatmap_md5,
@@ -341,7 +340,6 @@ async def fetch_beatmap_leaderboard_score_count(
                 row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
-            LEFT JOIN clans c ON users.clan_id = c.id
             INNER JOIN users_stats ON users_stats.id = s.userid
             WHERE
                 s.beatmap_md5 = :beatmap_md5
