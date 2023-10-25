@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from typing import Union
 
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
@@ -11,7 +10,6 @@ from tenacity.stop import stop_after_attempt
 
 import app.state
 import config
-from app.objects.path import Path
 
 REQUIRED_FOLDERS = (
     config.DATA_DIR,
@@ -30,19 +28,6 @@ def ensure_directory_structure() -> None:
 
 def make_safe(username: str) -> str:
     return username.rstrip().lower().replace(" ", "_")
-
-
-TIME_ORDER_SUFFIXES = ["ns", "μs", "ms", "s"]
-
-
-def format_time(time: Union[int, float]) -> str:
-    for suffix in TIME_ORDER_SUFFIXES:
-        if time < 1000:
-            break
-
-        time /= 1000
-
-    return f"{time:.2f}{suffix}"  # type: ignore
 
 
 # TODO: better client error & 429 handling
