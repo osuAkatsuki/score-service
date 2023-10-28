@@ -9,7 +9,8 @@ from typing import Callable
 from typing import Optional
 
 ExceptionHook = Callable[
-    [type[BaseException], BaseException, Optional[TracebackType]], Any,
+    [type[BaseException], BaseException, Optional[TracebackType]],
+    Any,
 ]
 ThreadingExceptionHook = Callable[[threading.ExceptHookArgs], Any]
 
