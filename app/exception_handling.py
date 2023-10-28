@@ -1,12 +1,15 @@
+from __future__ import annotations
+
+import logging
 import sys
 import threading
 from types import TracebackType
-from typing import Any, Callable, Optional
-
-import logging
+from typing import Any
+from typing import Callable
+from typing import Optional
 
 ExceptionHook = Callable[
-    [type[BaseException], BaseException, Optional[TracebackType]], Any
+    [type[BaseException], BaseException, Optional[TracebackType]], Any,
 ]
 ThreadingExceptionHook = Callable[[threading.ExceptHookArgs], Any]
 

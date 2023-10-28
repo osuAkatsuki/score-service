@@ -5,9 +5,9 @@ import logging
 from typing import Awaitable
 from typing import Callable
 
-# NOTE: these are imported for use in other modules
 from . import cache
 from . import services
+# NOTE: these are imported for use in other modules
 
 tasks: set[asyncio.Task] = set()
 
