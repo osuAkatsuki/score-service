@@ -8,8 +8,6 @@ from typing import Callable
 from . import cache
 from . import services
 
-# NOTE: these are imported for use in other modules
-
 tasks: set[asyncio.Task] = set()
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
