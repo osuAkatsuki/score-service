@@ -4,9 +4,9 @@ import asyncio
 import logging
 import os
 
-from tenacity import retry
-from tenacity.retry import retry_if_exception_type
+from tenacity import retry, wait_exponential
 from tenacity.stop import stop_after_attempt
+from app.reliability import retry_if_exception_network_related
 
 import app.state
 import config
@@ -30,14 +30,14 @@ def make_safe(username: str) -> str:
     return username.rstrip().lower().replace(" ", "_")
 
 
-# TODO: better client error & 429 handling
 @retry(
+    retry=retry_if_exception_network_related(),
+    wait=wait_exponential(),
+    stop=stop_after_attempt(10),
     reraise=True,
-    stop=stop_after_attempt(7),
-    retry=retry_if_exception_type(asyncio.TimeoutError),
 )
 async def channel_message(channel: str, message: str) -> None:
-    await app.state.services.http.get(
+    response = await app.state.services.http_client.get(
         "http://localhost:5001/api/v1/fokabotMessage",
         params={
             "to": channel,
@@ -46,9 +46,10 @@ async def channel_message(channel: str, message: str) -> None:
         },
         timeout=2,
     )
+    response.raise_for_status()
 
 
-async def announce(message: str) -> None:
+async def send_announcement_as_side_effect(message: str) -> None:
     try:
         asyncio.create_task(channel_message("#announce", message))
     except asyncio.TimeoutError:
