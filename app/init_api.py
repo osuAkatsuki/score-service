@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import httpx
 import logging
 import pprint
 
 import aio_pika
 import aiobotocore.session
+import httpx
 import redis.asyncio as aioredis
 from fastapi import FastAPI
 from fastapi import status
@@ -51,7 +51,6 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.redis.ping()
 
         app.state.services.http_client = httpx.AsyncClient()
-
 
         app.state.services.s3_client = None
         if (

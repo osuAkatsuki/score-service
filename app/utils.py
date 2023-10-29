@@ -4,12 +4,13 @@ import asyncio
 import logging
 import os
 
-from tenacity import retry, wait_exponential
+from tenacity import retry
+from tenacity import wait_exponential
 from tenacity.stop import stop_after_attempt
-from app.reliability import retry_if_exception_network_related
 
 import app.state
 import config
+from app.reliability import retry_if_exception_network_related
 
 REQUIRED_FOLDERS = (
     config.DATA_DIR,

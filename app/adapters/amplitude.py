@@ -4,11 +4,12 @@ from typing import Any
 from typing import Mapping
 from typing import TYPE_CHECKING
 
-from tenacity import retry, wait_exponential
+from tenacity import retry
+from tenacity import wait_exponential
 from tenacity.stop import stop_after_attempt
-from app.reliability import retry_if_exception_network_related
 
 import config
+from app.reliability import retry_if_exception_network_related
 from app.state import services
 
 if TYPE_CHECKING:
@@ -102,6 +103,7 @@ def format_achievement(achievement: Achievement) -> dict[str, Any]:
         "name": achievement.name,
         "description": achievement.desc,
     }
+
 
 @retry(
     retry=retry_if_exception_network_related(),
@@ -206,6 +208,7 @@ async def track(
         },
     )
     response.raise_for_status()
+
 
 @retry(
     retry=retry_if_exception_network_related(),

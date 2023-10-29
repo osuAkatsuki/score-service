@@ -5,12 +5,14 @@ import logging
 import traceback
 from typing import Optional
 
-from tenacity import retry, stop_after_attempt, wait_exponential
-from app.reliability import retry_if_exception_network_related
+from tenacity import retry
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
 
 import app.state
 import config
 from app.models.user import User
+from app.reliability import retry_if_exception_network_related
 
 
 # This portion is based off cmyui's discord hooks code
