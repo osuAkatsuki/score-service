@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
-from typing import Optional, TypedDict
-from app.constants.mode import Mode
+from typing import Optional
+from typing import TypedDict
 
 import app.state
 import app.usecases
 import app.utils
+from app.constants.mode import Mode
 from app.models.achievement import Achievement
 from app.models.beatmap import Beatmap
 from app.models.score import Score
