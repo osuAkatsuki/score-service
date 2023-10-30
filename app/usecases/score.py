@@ -3,7 +3,8 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
-from typing import Optional
+from typing import Optional, TypedDict
+from app.constants.mode import Mode
 
 import app.state
 import app.usecases
@@ -110,18 +111,12 @@ async def handle_first_place(
         {"md5": score.map_md5, "mode": score.mode.as_vn, "rx": score.mode.relax_int},
     )
 
-    await app.state.services.database.execute(
-        (
-            "INSERT INTO scores_first (beatmap_md5, mode, rx, scoreid, userid) VALUES "
-            "(:md5, :mode, :rx, :sid, :uid)"
-        ),
-        {
-            "md5": score.map_md5,
-            "mode": score.mode.as_vn,
-            "rx": score.mode.relax_int,
-            "sid": score.id,
-            "uid": score.user_id,
-        },
+    await insert_first_place(
+        beatmap_md5=score.map_md5,
+        vanilla_mode=score.mode.as_vn,
+        relax_int=score.mode.relax_int,
+        score_id=score.id,
+        user_id=user.id,
     )
 
     msg = f"[{score.mode.relax_str}] User {user.embed} has submitted a #1 place on {beatmap.embed} +{score.mods!r} ({score.pp:.2f}pp)"
@@ -186,3 +181,114 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         .write_raw(replay_bytes)
         .write_i64_le(score.id)
     )
+
+
+class FirstPlaceRow(TypedDict):
+    beatmap_md5: str
+    mode: Mode
+    score_id: int
+    user_id: int
+
+
+async def get_user_first_places(user_id: int) -> list[FirstPlaceRow]:
+    first_db = await app.state.services.database.fetch_all(
+        "SELECT beatmap_md5, mode, rx, scoreid, userid FROM scores_first "
+        "WHERE userid = :userid",
+        {
+            "userid": user_id,
+        },
+    )
+
+    return [
+        {
+            "beatmap_md5": row["beatmap_md5"],
+            "mode": Mode.from_rx_mode(row["mode"], row["rx"]),
+            "score_id": row["scoreid"],
+            "user_id": row["userid"],
+        }
+        for row in first_db
+    ]
+
+
+async def delete_first_place(score_id: int) -> None:
+    await app.state.services.database.execute(
+        "DELETE FROM scores_first WHERE scoreid = :score_id",
+        {
+            "score_id": score_id,
+        },
+    )
+
+
+async def insert_first_place(
+    beatmap_md5: str,
+    vanilla_mode: int,
+    relax_int: int,
+    score_id: int,
+    user_id: int,
+) -> None:
+    await app.state.services.database.execute(
+        (
+            "INSERT INTO scores_first (beatmap_md5, mode, rx, scoreid, userid) VALUES "
+            "(:md5, :mode, :rx, :sid, :uid)"
+        ),
+        {
+            "md5": beatmap_md5,
+            "mode": vanilla_mode,
+            "rx": relax_int,
+            "sid": score_id,
+            "uid": user_id,
+        },
+    )
+
+
+async def calculate_first_place(beatmap_md5: str, mode: Mode) -> None:
+    current_first = await app.state.services.database.fetch_one(
+        "SELECT scoreid FROM scores_first WHERE rx = :relax "
+        "AND mode = :mode AND beatmap_md5 = :beatmap_md5",
+        {
+            "relax": mode.relax_int,
+            "mode": mode.as_vn,
+            "beatmap_md5": beatmap_md5,
+        },
+    )
+
+    # Calculate the top on the leaderboards. Use leaderboard as its likely to be cached.
+    beatmap = await app.usecases.beatmap.fetch_by_md5(beatmap_md5)
+    if beatmap is None:
+        return
+
+    new_first = await app.usecases.leaderboards.fetch_first_place(
+        beatmap,
+        mode,
+    )
+
+    if current_first is not None:
+        # No more scores on the map.
+        if new_first is None:
+            await delete_first_place(current_first["scoreid"])
+        else:
+            # First place is unchanged.
+            if new_first["score_id"] == current_first["scoreid"]:
+                return
+
+            await delete_first_place(current_first["scoreid"])
+            await insert_first_place(
+                beatmap_md5=beatmap.md5,
+                vanilla_mode=mode.as_vn,
+                relax_int=mode.relax_int,
+                score_id=new_first["score_id"],
+                user_id=new_first["user_id"],
+            )
+
+
+async def get_user_score_maps(user_id: int, mode: Mode) -> list[str]:
+    beatmaps_db = await app.state.services.database.fetch_all(
+        f"SELECT beatmap_md5 FROM {mode.scores_table} WHERE completed = 3 "
+        "AND play_mode = :mode AND userid = :user_id",
+        {
+            "mode": mode.as_vn,
+            "user_id": user_id,
+        },
+    )
+
+    return [row["beatmap_md5"] for row in beatmaps_db]

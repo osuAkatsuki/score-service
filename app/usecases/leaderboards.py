@@ -95,3 +95,11 @@ async def find_score_rank(
     assert leaderboard_score is not None
 
     return leaderboard_score["score_rank"]
+
+
+async def fetch_first_place(beatmap: Beatmap, mode: Mode) -> LeaderboardScore | None:
+    return await leaderboards_repository.fetch_first_place(
+        beatmap_md5=beatmap.md5,
+        play_mode=mode.as_vn,
+        scores_table=mode.scores_table,
+    )

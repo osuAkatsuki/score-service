@@ -9,6 +9,8 @@ from typing import TypedDict
 
 import orjson
 import redis.asyncio.client
+from app.constants.mode import Mode
+from app.constants.privileges import Privileges
 
 import app.state
 import app.usecases
@@ -26,9 +28,26 @@ def register_pubsub(channel: str):
 @register_pubsub("peppy:ban")
 async def handle_privilege_change(payload: str) -> None:
     user_id = int(payload)
-    await app.usecases.privileges._get_privileges(user_id)
+    privileges = await app.usecases.privileges._get_privileges(user_id)
 
     logging.info(f"Updated privileges for user ID {user_id}")
+
+    # recalculate first place ranks
+    if privileges & Privileges.USER_PUBLIC == 0:
+        # Recalc all their first places
+        first_places = await app.usecases.score.get_user_first_places(user_id)
+        for place in first_places:
+            await app.usecases.score.calculate_first_place(
+                place["beatmap_md5"],
+                place["mode"],
+            )
+    else:
+        for mode in Mode:
+            beatmap_md5s = await app.usecases.score.get_user_score_maps(user_id, mode)
+            for beatmap_md5 in beatmap_md5s:
+                await app.usecases.score.calculate_first_place(beatmap_md5, mode)
+
+    logging.info(f"Recalculated the first places for user ID {user_id}")
 
 
 class UsernameChange(TypedDict):

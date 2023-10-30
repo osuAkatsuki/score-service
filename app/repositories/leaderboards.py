@@ -365,3 +365,65 @@ async def fetch_beatmap_leaderboard_score_count(
 
     score_count = await app.state.services.database.fetch_val(query, params)
     return int(score_count)
+
+
+async def fetch_first_place(
+    beatmap_md5: str,
+    play_mode: int,
+    scores_table: Literal["scores", "scores_relax", "scores_ap"],
+) -> LeaderboardScore | None:
+    params = {
+        "beatmap_md5": beatmap_md5,
+        "play_mode": play_mode,
+    }
+
+    query = f"""
+        WITH RankedScores AS (
+            SELECT
+                users.username AS users_username,
+                s.id AS score_id,
+                s.beatmap_md5 AS beatmap_md5,
+                s.userid AS user_id,
+                s.score AS score,
+                s.max_combo AS max_combo,
+                s.full_combo AS full_combo,
+                s.mods AS mods,
+                s.`300_count` AS count_300,
+                s.`100_count` AS count_100,
+                s.`50_count` AS count_50,
+                s.katus_count AS count_katu,
+                s.gekis_count AS count_geki,
+                s.misses_count AS count_miss,
+                s.time AS time,
+                s.play_mode AS play_mode,
+                s.completed AS completed,
+                s.accuracy AS accuracy,
+                s.pp AS pp,
+                s.checksum AS checksum,
+                s.patcher AS patcher,
+                s.pinned AS pinned,
+                row_number() OVER (PARTITION BY s.userid ORDER BY s.pp DESC) score_order_rank
+            FROM {scores_table} s
+            INNER JOIN users ON users.id = s.userid
+            WHERE
+                s.beatmap_md5 = :beatmap_md5
+                AND s.play_mode = :play_mode
+                AND s.completed = 3
+                AND (users.privileges & 1 > 0)
+        )
+        SELECT
+            a.*,
+            a.users_username AS score_username
+        FROM (
+            SELECT *, row_number() OVER (ORDER BY pp DESC) `score_rank`
+            FROM RankedScores
+            WHERE score_order_rank = 1
+        ) a
+        ORDER BY a.pp DESC
+        LIMIT 1
+    """
+
+    score_record = await app.state.services.database.fetch_one(query, params)
+    return (
+        cast(LeaderboardScore, dict(score_record)) if score_record is not None else None
+    )

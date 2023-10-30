@@ -122,23 +122,32 @@ class Mode(IntEnum):
     def from_offset(cls, score_id: int) -> Mode:
         # IMPORTANT NOTE: this does not return the correct MODE, just the correct vn/rx/ap representation
         if score_id < RELAX_OFFSET:
-            return Mode.STD_RX
+            return cls.STD_RX
         elif score_id >= AP_OFFSET:
-            return Mode.STD_AP
+            return cls.STD_AP
 
-        return Mode.STD
+        return cls.STD
 
     @classmethod
     def from_lb(cls, mode: int, mods: int) -> Mode:
         if mods & Mods.RELAX:
             if mode == 3:
-                return Mode.MANIA
+                return cls.MANIA
 
-            return Mode(mode + 4)
+            return cls(mode + 4)
         elif mods & Mods.AUTOPILOT:
             if mode != 0:
-                return Mode.STD
+                return cls.STD
 
-            return Mode.STD_AP
+            return cls.STD_AP
 
-        return Mode(mode)
+        return cls(mode)
+
+    @classmethod
+    def from_rx_mode(cls, mode: int, relax: int) -> Mode:
+        if relax == 0:
+            return cls(mode)
+        elif relax == 2:
+            return cls.STD_AP
+        else:
+            return cls(mode + 4)
