@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - better-retries-attempt-2
 
 jobs:
   build:
