@@ -12,6 +12,7 @@ import app.state
 import config
 from app.reliability import retry_if_exception_network_related
 
+
 def make_safe(username: str) -> str:
     return username.rstrip().lower().replace(" ", "_")
 

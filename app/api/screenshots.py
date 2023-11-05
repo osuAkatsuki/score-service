@@ -16,10 +16,9 @@ import app.state
 import app.utils
 import config
 from app.adapters import amplitude
+from app.adapters import s3
 from app.models.user import User
 from app.objects.path import Path
-
-from app.adapters import s3
 from app.usecases.user import authenticate_user
 
 SS_DELAY = 10  # Seconds per screenshot.

@@ -8,7 +8,6 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 
 import app.usecases
-
 from app.adapters import s3
 from app.constants.mode import Mode
 from app.constants.mods import Mods
