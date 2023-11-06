@@ -63,6 +63,10 @@ jobs:
           token: ${{ secrets.COMMON_HELM_CHARTS_PAT }}
           path: common-helm-charts
 
+      - name: Clear pending deployments
+        run: |
+          kubectl get secret -lname=score-service-production -lstatus=pending-upgrade -oname | xargs --no-run-if-empty kubectl delete
+
       - name: Show manifest diff since previous release
         run: |
           helm diff upgrade \
@@ -70,6 +74,7 @@ jobs:
           --values chart/values.yaml \
           score-service-production \
           common-helm-charts/microservice-base/
+
       - name: Deploy service to production cluster
         run: |
           helm upgrade \
