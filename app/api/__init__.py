@@ -30,7 +30,7 @@ router = APIRouter(default_response_class=Response)
 async def healthcheck():
     await app.state.services.redis.ping()
     await app.state.services.database.execute("SELECT 1")
-    return {"status": "ok"}
+    return ORJSONResponse({"status": "ok"})
 
 
 router.add_api_route("/web/osu-osz2-getscores.php", leaderboards.get_leaderboard)
