@@ -68,7 +68,7 @@ async def calculate_pp(
         ]
 
         raw_pp_results = await app.usecases.performance.calculate_performances(
-            pp_requests
+            pp_requests,
         )  # [(pp, stars)]
         pp_result = [pp for pp, _ in raw_pp_results]
         star_rating = raw_pp_results[0][1]
