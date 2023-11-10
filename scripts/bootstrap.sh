@@ -7,10 +7,6 @@ if [ -z "$APP_ENV" ]; then
 fi
 
 if [[ $PULL_SECRETS_FROM_VAULT -eq 1 ]]; then
-  echo "Installing akatsuki-cli"
-  pip install --index-url $PYPI_INDEX_URL akatsuki-cli
-  echo "Installed akatsuki-cli"
-
   echo "Fetching secrets from vault"
   # TODO: revert to $APP_ENV
   akatsuki vault get score-service production-k8s -o .env
