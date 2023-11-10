@@ -55,7 +55,7 @@ async def calculate_pp(
 
     star_rating = pp_result = 0.0
     if use_common_pp_percentages:
-        pp_requests: list[PerformanceScore] = [
+        performance_requests: list[PerformanceScore] = [
             {
                 "beatmap_id": beatmap.id,
                 "mode": mode.as_vn,
@@ -67,11 +67,14 @@ async def calculate_pp(
             for accuracy in COMMON_PP_PERCENTAGES
         ]
 
-        raw_pp_results = await app.usecases.performance.calculate_performances(
-            pp_requests,
+        performance_results = await app.usecases.performance.calculate_performances(
+            performance_requests,
         )  # [(pp, stars)]
-        pp_result = [pp for pp, _ in raw_pp_results]
-        star_rating = raw_pp_results[0][1]
+
+        pp_result = [pp for pp, stars in performance_results]
+
+        # fetching first SR as they are all the same
+        star_rating = performance_results[0][1]
     else:
         pp_result, star_rating = await app.usecases.performance.calculate_performance(
             beatmap.id,
