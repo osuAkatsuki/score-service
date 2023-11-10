@@ -42,17 +42,6 @@ async def calculate_pp(
 
     combo = combo if combo else beatmap.max_combo
 
-    beatmap_exists = (
-        # TODO: s3.exists using HEAD request?
-        # though, do we even need to do this?
-        await s3.download(f"{beatmap.id}.osu", folder=f"beatmaps")
-    ) is not None
-    if beatmap_exists is None:
-        return ORJSONResponse(
-            content={"message": "Invalid/non-existent beatmap id."},
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
     star_rating = pp_result = 0.0
     if use_common_pp_percentages:
         performance_requests: list[PerformanceScore] = [
