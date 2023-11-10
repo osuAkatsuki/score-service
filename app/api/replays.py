@@ -44,9 +44,7 @@ async def get_replay(
         return b""
 
     if db_score["userid"] != user.id:
-        asyncio.create_task(
-            app.usecases.user.increment_replays_watched(db_score["userid"], mode),
-        )
+        await app.usecases.user.increment_replays_watched(db_score["userid"], mode)
 
     if config.AMPLITUDE_API_KEY:
         asyncio.create_task(
