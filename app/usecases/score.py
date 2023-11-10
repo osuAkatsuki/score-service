@@ -140,7 +140,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         return
 
     username = await app.usecases.usernames.get_username(score.user_id)
-    if not username:
+    if username is None:
         return
 
     replay_md5 = hashlib.md5(

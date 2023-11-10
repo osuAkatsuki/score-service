@@ -69,12 +69,14 @@ async def fetch_by_id(id: int) -> Optional[Beatmap]:
         return beatmap
 
 
-async def fetch_by_set_id(set_id: int) -> Optional[list[Beatmap]]:
+async def fetch_by_set_id(set_id: int) -> list[Beatmap]:
     if beatmaps := await set_from_database(set_id):
         return beatmaps
 
     if beatmaps := await set_from_api(set_id):
         return beatmaps
+
+    return []
 
 
 async def md5_from_database(md5: str) -> Optional[Beatmap]:
