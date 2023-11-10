@@ -67,12 +67,11 @@ async def calculate_pp(
             for accuracy in COMMON_PP_PERCENTAGES
         ]
 
-        pp_result = [
-            pp
-            for pp, _ in await app.usecases.performance.calculate_performances(
-                pp_requests,
-            )
-        ]
+        raw_pp_results = await app.usecases.performance.calculate_performances(
+            pp_requests
+        )  # [(pp, stars)]
+        pp_result = [pp for pp, _ in raw_pp_results]
+        star_rating = raw_pp_results[0][1]
     else:
         pp_result, star_rating = await app.usecases.performance.calculate_performance(
             beatmap.id,
