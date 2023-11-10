@@ -53,11 +53,6 @@ async def get_leaderboard(
 ):
     start = time.perf_counter()
 
-    if map_md5 in app.state.cache.UNSUBMITTED:
-        return b"-1|false"
-    elif map_md5 in app.state.cache.REQUIRES_UPDATE:
-        return b"1|false"
-
     mode = Mode.from_lb(mode_arg, mods_arg)
     mods = Mods(mods_arg)
 
