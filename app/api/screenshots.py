@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os.path
 import random
 import string
 import sys
@@ -48,8 +49,9 @@ def gen_rand_str(len: int) -> str:
 
 async def fetch_screenshot(file_path: str):
     """Fetches a screenshot from the S3 bucket."""
-
-    if ".." in file_path or "/" in file_path:
+    # protect against path traversal
+    file_abs_path = os.path.abspath(os.path.join("screenshots", file_path))
+    if os.path.commonpath([file_abs_path, "screenshots"]) != "screenshots":
         return None
 
     return Response(
