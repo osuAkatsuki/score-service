@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+from datetime import datetime
+
 from pydantic import BaseModel
 from pydantic import Field
 
-from datetime import datetime
 
 class CheesegullBeatmap(BaseModel):
     id: int = Field(..., alias="BeatmapID")
