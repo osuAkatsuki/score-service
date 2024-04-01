@@ -4,6 +4,7 @@ import asyncio
 from typing import Any
 from typing import Optional
 from urllib.parse import unquote_plus
+from urllib.parse import urlparse
 
 from fastapi import Depends
 from fastapi import Path
@@ -16,23 +17,11 @@ import app.usecases
 import config
 from app.adapters import amplitude
 from app.constants.ranked_status import RankedStatus
+from app.models.cheesegull import CheesegullBeatmapset
 from app.models.user import User
+from app.usecases.cheesegull import format_beatmapset_to_direct
+from app.usecases.cheesegull import format_beatmapset_to_direct_card
 from app.usecases.user import authenticate_user
-
-USING_CHIMU = "https://api.chimu.moe/v1" == config.DIRECT_URL
-USING_KITSU = "https://us.kitsu.moe/api" == config.DIRECT_URL
-CHIMU_SET_ID_SPELLING = "SetId" if USING_CHIMU else "SetID"
-
-DIRECT_SET_INFO_FMTSTR = (
-    "{{{chimu_set_id_spelling}}}.osz|{{Artist}}|{{Title}}|{{Creator}}|"
-    "{{RankedStatus}}|10.0|{{LastUpdate}}|{{{chimu_set_id_spelling}}}|"
-    "0|{{HasVideo}}|0|0|0|{{diffs}}"
-).format(chimu_set_id_spelling="SetId" if USING_CHIMU else "SetID")
-
-DIRECT_MAP_INFO_FMTSTR = (
-    "[{DifficultyRating:.2f}⭐] {DiffName} "
-    "{{cs: {CS} / od: {OD} / ar: {AR} / hp: {HP}}}@{Mode}"
-)
 
 
 async def osu_direct(
@@ -45,9 +34,6 @@ async def osu_direct(
     search_url = f"{config.DIRECT_URL}/search"
 
     params: dict[str, Any] = {"amount": 101, "offset": page_num}
-
-    if "akatsuki.gg" in config.DIRECT_URL or "akatest.space" in config.DIRECT_URL:
-        params["osu_direct"] = True
 
     if unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
         params["query"] = query
@@ -67,36 +53,18 @@ async def osu_direct(
         if response.status_code != status.HTTP_200_OK:
             return b"-1\nFailed to retrieve data from the beatmap mirror."
 
-        result = response.json()
-
-        # if USING_KITSU: # kitsu is kinda annoying here and sends status in body
-        #    if result["code"] != 200:
-        #        return b"-1\nFailed to retrieve data from the beatmap mirror."
-
+        beatmapsets = [
+            CheesegullBeatmapset.model_validate(beatmapset)
+            for beatmapset in response.json()
+        ]
     except asyncio.exceptions.TimeoutError:
         return b"-1\n3rd party beatmap mirror we depend on timed out. Their server is likely down."
 
-    result_len = len(result)
-    ret = [f"{'101' if result_len == 100 else result_len}"]
+    beatmapset_count = len(beatmapsets)
 
-    for bmap in result:
-        if not bmap["ChildrenBeatmaps"]:
-            continue
-
-        diff_sorted_maps = sorted(
-            bmap["ChildrenBeatmaps"],
-            key=lambda x: x["DifficultyRating"],
-        )
-
-        diffs_str = ",".join(
-            DIRECT_MAP_INFO_FMTSTR.format(**bm) for bm in diff_sorted_maps
-        )
-        ret.append(
-            DIRECT_SET_INFO_FMTSTR.format(
-                **bmap,
-                diffs=diffs_str,
-            ),
-        )
+    osu_direct_response = [
+        format_beatmapset_to_direct(beatmapset) for beatmapset in beatmapsets
+    ]
 
     if config.AMPLITUDE_API_KEY:
         asyncio.create_task(
@@ -115,7 +83,12 @@ async def osu_direct(
             ),
         )
 
-    return "\n".join(ret).encode()
+    # direct will only ever ask for 100 beatmaps
+    # but if it *should* fetch the next page then it wants a hint there's more beatmaps
+    direct_beatmapset_count = 101 if beatmapset_count >= 100 else beatmapset_count
+    beatmapset_count_line = f"{direct_beatmapset_count}\n"
+
+    return (beatmapset_count_line + "\n".join(osu_direct_response)).encode()
 
 
 async def beatmap_card(
@@ -130,14 +103,12 @@ async def beatmap_card(
 
         map_set_id = bmap.set_id
 
-    url = f"{config.DIRECT_URL}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
+    url = f"{config.DIRECT_URL}/s/{map_set_id}"
     response = await app.state.services.http_client.get(url, timeout=5)
     if response.status_code != 200:
         return
 
-    result = response.json()
-
-    json_data = result["data"] if USING_CHIMU else result
+    beatmapset = CheesegullBeatmapset.model_validate(response.json())
 
     if config.AMPLITUDE_API_KEY:
         asyncio.create_task(
@@ -152,17 +123,13 @@ async def beatmap_card(
             ),
         )
 
-    return (
-        "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
-        "{RankedStatus}|10.0|{LastUpdate}|{chimu_spell}|"
-        "0|0|0|0|0".format(**json_data, chimu_spell=json_data[CHIMU_SET_ID_SPELLING])
-    ).encode()
+    return format_beatmapset_to_direct_card(beatmapset).encode()
 
 
 async def download_map(set_id: str = Path(...)):
-    domain = config.DIRECT_URL.split("/")[2]
+    parsed_url = urlparse(config.DIRECT_URL)
 
     return RedirectResponse(
-        url=f"https://{domain}/d/{set_id}",
+        url=f"https://{parsed_url.netloc}/d/{set_id}",
         status_code=status.HTTP_301_MOVED_PERMANENTLY,
     )
