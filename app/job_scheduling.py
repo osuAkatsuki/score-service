@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import asyncio
 import sys
-from typing import Any, Coroutine, Generator, TypeVar, Union
+from typing import Any
+from typing import Coroutine
+from typing import Generator
+from typing import TypeVar
+from typing import Union
 
 T = TypeVar("T")
 
@@ -11,7 +17,7 @@ def schedule_job(
     coro: Union[
         Generator[Any, None, T],
         Coroutine[Any, Any, T],
-    ]
+    ],
 ) -> asyncio.Task[T]:
     """\
     Run a coroutine to run in the background.
@@ -54,10 +60,9 @@ def _handle_task_exception(task: asyncio.Task[Any]) -> None:
             )
 
 
-async def await_running_jobs(timeout: float) -> tuple[
-    set[asyncio.Task[Any]],
-    set[asyncio.Task[Any]],
-]:
+async def await_running_jobs(
+    timeout: float,
+) -> tuple[set[asyncio.Task[Any]], set[asyncio.Task[Any]]]:
     """\
     Await all tasks to complete, or until the timeout is reached.
 
