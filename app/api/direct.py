@@ -5,6 +5,7 @@ import logging
 from typing import Any
 from typing import Optional
 from urllib.parse import unquote_plus
+
 import httpx
 from fastapi import Depends
 from fastapi import Path
