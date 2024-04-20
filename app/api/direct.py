@@ -66,6 +66,7 @@ async def osu_direct(
             params=params,
             timeout=5,
         )
+        response.raise_for_status()
     except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
         if isinstance(exc, httpx.HTTPStatusError):
             if exc.response.status_code == status.HTTP_404_NOT_FOUND:
