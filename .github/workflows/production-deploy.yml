@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - better-mirror-fail-logs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
