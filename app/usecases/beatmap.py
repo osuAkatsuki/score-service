@@ -118,10 +118,10 @@ async def save(beatmap: Beatmap) -> None:
     await app.state.services.database.execute(
         (
             "REPLACE INTO beatmaps (beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode, rating, "
-            "difficulty_std, difficulty_taiko, difficulty_ctb, difficulty_mania, max_combo, hit_length, bpm, playcount, "
-            "passcount, ranked, latest_update, ranked_status_freezed, file_name) VALUES (:beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, "
-            ":ar, :od, :mode, :rating, :difficulty_std, :difficulty_taiko, :difficulty_ctb, :difficulty_mania, :max_combo, :hit_length, :bpm, "
-            ":playcount, :passcount, :ranked, :latest_update, :ranked_status_freezed, :file_name)"
+            "max_combo, hit_length, bpm, playcount, passcount, ranked, latest_update, ranked_status_freezed, "
+            "file_name) VALUES (:beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, :ar, :od, :mode, "
+            ":rating, :max_combo, :hit_length, :bpm, :playcount, :passcount, :ranked, :latest_update, "
+            ":ranked_status_freezed, :file_name)"
         ),
         {
             "beatmap_id": beatmap.id,
@@ -132,10 +132,6 @@ async def save(beatmap: Beatmap) -> None:
             "od": beatmap.od,
             "mode": beatmap.mode.value,
             "rating": beatmap.rating,
-            "difficulty_std": beatmap.difficulty_std,
-            "difficulty_taiko": beatmap.difficulty_taiko,
-            "difficulty_ctb": beatmap.difficulty_ctb,
-            "difficulty_mania": beatmap.difficulty_mania,
             "max_combo": beatmap.max_combo,
             "hit_length": beatmap.hit_length,
             "bpm": beatmap.bpm,
@@ -289,10 +285,6 @@ def parse_from_osu_api(
                 mode=mode,
                 od=od,
                 ar=ar,
-                difficulty_std=0.0,
-                difficulty_taiko=0.0,
-                difficulty_ctb=0.0,
-                difficulty_mania=0.0,
                 hit_length=hit_length,
                 last_update=int(time.time()),
                 max_combo=max_combo,
