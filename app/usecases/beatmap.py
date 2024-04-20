@@ -87,7 +87,7 @@ async def md5_from_database(md5: str) -> Optional[Beatmap]:
     if not db_result:
         return None
 
-    return Beatmap.from_mapping(db_result)  # type: ignore
+    return Beatmap.from_mapping(db_result)
 
 
 async def id_from_database(id: int) -> Optional[Beatmap]:
@@ -99,7 +99,7 @@ async def id_from_database(id: int) -> Optional[Beatmap]:
     if not db_result:
         return None
 
-    return Beatmap.from_mapping(db_result)  # type: ignore
+    return Beatmap.from_mapping(db_result)
 
 
 async def set_from_database(set_id: int) -> list[Beatmap]:
@@ -123,7 +123,29 @@ async def save(beatmap: Beatmap) -> None:
             ":ar, :od, :mode, :rating, :difficulty_std, :difficulty_taiko, :difficulty_ctb, :difficulty_mania, :max_combo, :hit_length, :bpm, "
             ":playcount, :passcount, :ranked, :latest_update, :ranked_status_freezed, :file_name)"
         ),
-        beatmap.to_mapping,  # type: ignore
+        {
+            "beatmap_id": beatmap.id,
+            "beatmapset_id": beatmap.set_id,
+            "beatmap_md5": beatmap.md5,
+            "song_name": beatmap.song_name,
+            "ar": beatmap.ar,
+            "od": beatmap.od,
+            "mode": beatmap.mode.value,
+            "rating": beatmap.rating,
+            "difficulty_std": beatmap.difficulty_std,
+            "difficulty_taiko": beatmap.difficulty_taiko,
+            "difficulty_ctb": beatmap.difficulty_ctb,
+            "difficulty_mania": beatmap.difficulty_mania,
+            "max_combo": beatmap.max_combo,
+            "hit_length": beatmap.hit_length,
+            "bpm": beatmap.bpm,
+            "playcount": beatmap.plays,
+            "passcount": beatmap.passes,
+            "ranked": beatmap.status.value,
+            "latest_update": beatmap.last_update,
+            "ranked_status_freezed": beatmap.frozen,
+            "file_name": beatmap.filename,
+        },
     )
 
 
