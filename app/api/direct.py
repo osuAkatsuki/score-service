@@ -70,7 +70,7 @@ async def osu_direct(
     except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
         if isinstance(exc, httpx.HTTPStatusError):
             if exc.response.status_code == status.HTTP_404_NOT_FOUND:
-                return None
+                return b"-1\nFailed to retrieve data from the beatmap mirror."
 
         logging.exception(
             "Failed to search for results from the beatmap mirror",
