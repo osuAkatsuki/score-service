@@ -15,7 +15,7 @@ async def fetch(user_id: int, mode: Mode) -> Optional[Stats]:
         SELECT ranked_score, total_score, pp, avg_accuracy, playcount,
                playtime, max_combo, total_hits, replays_watched
         FROM user_stats
-        WHERE user_id = :id
+        WHERE user_id = :user_id
         AND mode = :mode
         """,
         {"user_id": user_id, "mode": mode.value},
