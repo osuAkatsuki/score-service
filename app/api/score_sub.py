@@ -225,7 +225,7 @@ async def submit_score(
             },
         )
 
-        score.time_elapsed = score_time if score.passed else fail_time
+        score.time_elapsed = score_time
 
         if score.status == ScoreStatus.BEST:
             await app.state.services.database.execute(
