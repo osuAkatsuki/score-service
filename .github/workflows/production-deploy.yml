@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - log-stats-in-prod
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
