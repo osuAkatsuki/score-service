@@ -216,6 +216,15 @@ async def submit_score(
         else:
             score.status = ScoreStatus.FAILED
 
+        logging.warning(
+            "Score time output",
+            extra={
+                "user_id": score.user_id,
+                "score_time": score_time,
+                "fail_time": fail_time,
+            },
+        )
+
         score.time_elapsed = score_time if score.passed else fail_time
 
         if score.status == ScoreStatus.BEST:
