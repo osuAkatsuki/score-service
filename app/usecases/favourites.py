@@ -9,7 +9,7 @@ async def exists(user_id: int, beatmapset_id: int) -> bool:
         SELECT 1
         FROM user_favourites
         WHERE user_id = :user_id
-        AND setid = :beatmapset_id
+        AND beatmapset_id = :beatmapset_id
         """,
         {"user_id": user_id, "beatmapset_id": beatmapset_id},
     )
