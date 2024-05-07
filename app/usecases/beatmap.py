@@ -308,11 +308,6 @@ async def increment_playcount(
         beatmap.passes += 1
 
     await app.state.services.database.execute(
-        """\
-        UPDATE beatmaps
-        SET passcount = passcount + 1,
-        playcount = playcount + 1
-        WHERE beatmap_md5 = :beatmap_md5
-        """,
-        {"beatmap_md5": beatmap.md5},
+        "UPDATE beatmaps SET passcount = :pass, playcount = :play WHERE beatmap_md5 = :md5",
+        {"play": beatmap.plays, "pass": beatmap.passes, "md5": beatmap.md5},
     )
