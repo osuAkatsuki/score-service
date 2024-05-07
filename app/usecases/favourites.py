@@ -16,7 +16,7 @@ async def exists(user_id: int, beatmapset_id: int) -> bool:
     return rec is not None
 
 
-async def add_favorite(user_id: int, beatmapset_id: int) -> None:
+async def add_favourite(user_id: int, beatmapset_id: int) -> None:
     await app.state.services.database.execute(
         """\
         INSERT INTO user_favourites (user_id, beatmapset_id)
