@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from typing import Mapping
 
 import app.state.services
 from app.models.favourites import UserFavourite
@@ -21,7 +22,7 @@ def serialize(obj: UserFavourite) -> dict[str, Any]:
     }
 
 
-def deserialize(rec: dict[str, Any]) -> UserFavourite:
+def deserialize(rec: Mapping[str, Any]) -> UserFavourite:
     return UserFavourite(
         user_id=rec["user_id"],
         beatmapset_id=rec["beatmapset_id"],
@@ -61,4 +62,4 @@ async def fetch_all(user_id: int) -> list[UserFavourite]:
         """,
         {"user_id": user_id},
     )
-    return [deserialize(dict(rec)) for rec in recs]
+    return [deserialize(rec) for rec in recs]
