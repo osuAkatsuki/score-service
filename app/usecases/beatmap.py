@@ -299,8 +299,9 @@ def parse_from_osu_api(
 
 
 async def increment_playcount(
+    *,
     beatmap: Beatmap,
-    increment_passcount: bool = True,
+    increment_passcount: bool,
 ) -> None:
     beatmap.plays += 1
     if increment_passcount:
