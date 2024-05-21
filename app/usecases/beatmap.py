@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import logging
 import random
 import time
+from dataclasses import asdict
 from typing import Optional
 
 import app.state
