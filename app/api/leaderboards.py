@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
+from dataclasses import asdict
 from urllib.parse import unquote_plus
 
 from fastapi import Depends
@@ -76,10 +77,7 @@ async def get_leaderboard(
             "cmyui debug logs",
             extra={
                 "action": "beatmap_fetch",
-                "success": beatmap is not None,
-                "last_update": beatmap.last_update if beatmap else None,
-                "deserves_update": beatmap.deserves_update if beatmap else None,
-                "ranked_status": beatmap.status.value if beatmap else None,
+                "beatmap": asdict(beatmap) if beatmap else None,
             },
         )
     if beatmap and beatmap.deserves_update:
