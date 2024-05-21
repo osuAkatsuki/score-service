@@ -62,9 +62,31 @@ async def get_leaderboard(
             f"{CUR_LB_VER}, but the client sent {leaderboard_version}. (leaderboard gate)",
         )
 
+    cmyui_debug_log = user.id == 1001
+
+    if cmyui_debug_log:
+        logging.warning(
+            "cmyui debug logs",
+            extra={"action": "leaderboard", "beatmap_md5": map_md5},
+        )
+
     beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
+    if cmyui_debug_log:
+        logging.warning(
+            "cmyui debug logs",
+            extra={
+                "action": "beatmap_fetch",
+                "success": beatmap is not None,
+                "last_update": beatmap.last_update if beatmap else None,
+                "deserves_update": beatmap.deserves_update if beatmap else None,
+                "ranked_status": beatmap.status.value if beatmap else None,
+            },
+        )
     if beatmap and beatmap.deserves_update:
-        beatmap = await app.usecases.beatmap.update_beatmap(beatmap)
+        beatmap = await app.usecases.beatmap.update_beatmap(
+            beatmap,
+            cmyui_debug_log=cmyui_debug_log,
+        )
 
     if not beatmap:
         file_name = unquote_plus(map_file_name)

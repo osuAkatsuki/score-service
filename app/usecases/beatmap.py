@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import asdict
+import logging
 import random
 import time
 from typing import Optional
@@ -11,13 +13,31 @@ from app.constants.ranked_status import RankedStatus
 from app.models.beatmap import Beatmap
 
 
-async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
+async def update_beatmap(
+    beatmap: Beatmap,
+    cmyui_debug_log: bool = False,
+) -> Optional[Beatmap]:
     if not beatmap.deserves_update:
         return beatmap
+
+    if cmyui_debug_log:
+        logging.warning(
+            "cmyui debug logs",
+            extra={"action": "beatmap_update", "beatmap_md5": beatmap.md5},
+        )
 
     new_beatmap = await id_from_api(beatmap.id, should_save=False)
     if new_beatmap is None:
         # it's now unsubmitted!
+
+        if cmyui_debug_log:
+            logging.warning(
+                "cmyui debug logs",
+                extra={
+                    "action": "osu_api_beatmap_not_found",
+                    "beatmap_md5": beatmap.md5,
+                },
+            )
 
         await app.state.services.database.execute(
             "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
@@ -25,6 +45,16 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         )
 
         return None
+
+    if cmyui_debug_log:
+        logging.warning(
+            "cmyui debug logs",
+            extra={
+                "action": "osu_api_beatmap_found",
+                "osuapi_beatmap": asdict(new_beatmap),
+                "existing_beatmap": asdict(beatmap),
+            },
+        )
 
     # handle deleting the old beatmap etc.
     if new_beatmap.md5 != beatmap.md5:
