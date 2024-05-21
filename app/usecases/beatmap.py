@@ -18,6 +18,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     new_beatmap = await id_from_api(beatmap.id, should_save=False)
     if new_beatmap is None:
         # it's now unsubmitted!
+
         await app.state.services.database.execute(
             "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
             {"old_md5": beatmap.md5},
