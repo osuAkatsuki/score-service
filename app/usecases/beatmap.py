@@ -47,7 +47,6 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         new_beatmap.status = beatmap.status
         new_beatmap.frozen = True
 
-    # update for new shit
     new_beatmap.last_update = int(time.time())
 
     await save(new_beatmap)
