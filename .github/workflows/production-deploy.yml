@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - beatmap-status-change-webhook
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
