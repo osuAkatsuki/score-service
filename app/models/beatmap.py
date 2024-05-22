@@ -41,7 +41,6 @@ class Beatmap:
 
     @property
     def url(self) -> str:
-        # i hate this
         server_url = config.SRV_URL.replace("https://", "").replace("http://", "")
 
         return f"https://osu.{server_url}/beatmaps/{self.id}"
