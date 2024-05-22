@@ -234,7 +234,7 @@ def beatmap_status_change(
     new_beatmap: Beatmap,
     action_taken: Literal["status_change", "frozen"],
 ) -> None:
-    embed = Embed(title="Beatmap Status Change!", color=EDIT_COL)
+    embed = Embed(title="Beatmap Status/Freeze Change During Update!", color=EDIT_COL)
     if action_taken == "status_change":
         embed.description = f"Non-frozen {old_beatmap.embed} has just been changed from {old_beatmap.status.name} to {new_beatmap.status.name}!"
     else:
