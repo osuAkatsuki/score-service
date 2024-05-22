@@ -229,7 +229,7 @@ def log_user_edit(
 
 def beatmap_status_change(old_beatmap: Beatmap, new_beatmap: Beatmap) -> None:
     embed = Embed(title="Beatmap Status Change!", color=EDIT_COL)
-    embed.description = f"{old_beatmap.embed} has just been changed from {old_beatmap.status} to {new_beatmap.status}!"
+    embed.description = f"Non-frozen {old_beatmap.embed} has just been changed from {old_beatmap.status} to {new_beatmap.status}!"
     embed.set_author(name="LESS Score Server", icon_url=EDIT_ICON)
     embed.set_footer(text="This is an automated action performed by the server.")
 
