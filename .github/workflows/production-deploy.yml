@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - git-akatsuki-cli
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
