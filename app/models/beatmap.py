@@ -37,6 +37,7 @@ class Beatmap:
     bpm: int = 0
     filename: str = ""
     frozen: bool = False
+    rankedby: Optional[str] = None
     rating: Optional[float] = None
 
     @property
@@ -110,6 +111,7 @@ class Beatmap:
             "bpm": self.bpm,
             "file_name": self.filename,
             "ranked_status_freezed": self.frozen,
+            "rankedby": self.rankedby,
             "rating": self.rating,
         }
 
@@ -132,5 +134,6 @@ class Beatmap:
             bpm=mapping["bpm"],
             filename=mapping["file_name"],
             frozen=mapping["ranked_status_freezed"],
+            rankedby=mapping["rankedby"],
             rating=mapping["rating"],
         )
