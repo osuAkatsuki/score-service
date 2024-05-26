@@ -31,14 +31,13 @@ class Beatmap:
 
     hit_length: int
 
-    last_update: int = 0
+    last_update: int
 
-    max_combo: int = 0
-    bpm: int = 0
-    filename: str = ""
-    frozen: bool = False
-    rankedby: Optional[str] = None
-    rating: Optional[float] = None
+    max_combo: int
+    bpm: int
+    filename: str
+    frozen: bool
+    rating: Optional[float]
 
     @property
     def url(self) -> str:
