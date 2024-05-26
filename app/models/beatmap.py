@@ -37,7 +37,7 @@ class Beatmap:
     bpm: int
     filename: str
     frozen: bool
-    rankedby: Optional[str]
+    rankedby: Optional[int]
     rating: Optional[float]
 
     @property
