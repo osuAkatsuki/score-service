@@ -47,6 +47,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         # we should force the old status on the new version
         new_beatmap.status = beatmap.status
         new_beatmap.frozen = True
+        new_beatmap.rankedby = beatmap.rankedby
     elif beatmap.status != new_beatmap.status:
         if new_beatmap.status is RankedStatus.PENDING and beatmap.status in {
             RankedStatus.RANKED,
