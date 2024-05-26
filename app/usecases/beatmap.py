@@ -253,7 +253,7 @@ async def id_from_api(
 
 
 async def set_from_api(
-    id: int, is_definitely_new_beatmapset: bool = True
+    id: int, is_definitely_new_beatmapset: bool = True,
 ) -> Optional[list[Beatmap]]:
     api_key = random.choice(config.API_KEYS_POOL)
 
