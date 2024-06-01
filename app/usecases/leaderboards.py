@@ -35,9 +35,7 @@ async def fetch_beatmap_leaderboard(
 
     int_mods_filter = int(mods_filter) if mods_filter else None
 
-    sort_column = mode.sort
-    if mode is Mode.STD and vanilla_pp_leaderboards:
-        sort_column = "pp"
+    sort_column = mode.sort if not vanilla_pp_leaderboards else "pp"
 
     scores = await leaderboards_repository.fetch_beatmap_leaderboard(
         beatmap_md5=beatmap.md5,

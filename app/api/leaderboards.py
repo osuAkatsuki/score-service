@@ -24,7 +24,7 @@ def format_leaderboard_score_string(
     leaderboard_score: LeaderboardScore,
     vanilla_pp_leaderboards: bool,
 ) -> str:
-    if mode > Mode.MANIA or (mode is Mode.STD and vanilla_pp_leaderboards):
+    if mode > Mode.MANIA or vanilla_pp_leaderboards:
         score = int(leaderboard_score["pp"])
     else:
         score = leaderboard_score["score"]
