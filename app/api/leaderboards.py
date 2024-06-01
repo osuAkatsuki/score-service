@@ -127,7 +127,7 @@ async def get_leaderboard(
             response_lines.append(
                 format_leaderboard_score_string(
                     mode,
-                    leaderboard.personal_best, 
+                    leaderboard.personal_best,
                     user.vanilla_pp_leaderboards,
                 ),
             )
@@ -136,7 +136,9 @@ async def get_leaderboard(
 
         response_lines.extend(
             [
-                format_leaderboard_score_string(mode, score, user.vanilla_pp_leaderboards)
+                format_leaderboard_score_string(
+                    mode, score, user.vanilla_pp_leaderboards,
+                )
                 for score in leaderboard.scores
             ],
         )
