@@ -137,7 +137,9 @@ async def get_leaderboard(
         response_lines.extend(
             [
                 format_leaderboard_score_string(
-                    mode, score, user.vanilla_pp_leaderboards,
+                    mode,
+                    score,
+                    user.vanilla_pp_leaderboards,
                 )
                 for score in leaderboard.scores
             ],
