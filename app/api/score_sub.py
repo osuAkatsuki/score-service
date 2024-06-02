@@ -246,7 +246,7 @@ async def submit_score(
                 "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
                 ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :checksum)"
             ),
-            score.db_dict,
+            score.to_dict(),
         )
 
     replay_data = await replay_file.read()
