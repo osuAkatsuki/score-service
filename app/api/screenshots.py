@@ -22,7 +22,6 @@ from app.usecases.user import authenticate_user
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000
-ERR_RESP = "https://akatsuki.gg/"
 SS_NAME_LEN = 8
 
 
@@ -45,11 +44,11 @@ def gen_rand_str(len: int) -> str:
     return "".join(random.choice(AV_CHARS) for _ in range(len))
 
 
-async def fetch_screenshot(file_path: str):
+async def fetch_screenshot(file_path: str) -> Response:
     """Fetches a screenshot from the S3 bucket."""
 
     if ".." in file_path or "/" in file_path:
-        return None
+        return Response(b"")
 
     return Response(
         await s3.download(file_path, "screenshots"),
@@ -62,23 +61,23 @@ async def upload_screenshot(
     screenshot_file: UploadFile = File(None, alias="ss"),
     user_agent: str = Header(...),
     x_real_ip: str = Header(...),
-):
+) -> Response:
     if not await app.usecases.user.user_is_online(user.id):
         logging.error(f"{user} tried to upload a screenshot while offline")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     if user_agent != "osu!":
         logging.error(f"{user} tried to upload a screenshot using a bot")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     if await is_ratelimit(x_real_ip):
         logging.error(f"{user} tried to upload a screenshot while ratelimited")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     content = await screenshot_file.read()
 
     if sys.getsizeof(content) > FS_LIMIT:
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     if content[6:10] in (b"JFIF", b"Exif"):
         ext = "jpeg"
@@ -86,7 +85,7 @@ async def upload_screenshot(
         ext = "png"
     else:
         logging.error(f"{user} tried to upload unknown extension file")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     file_name = f"{gen_rand_str(SS_NAME_LEN)}.{ext}"
 
@@ -108,4 +107,4 @@ async def upload_screenshot(
         )
 
     logging.info(f"{user} has uploaded screenshot {file_name}")
-    return file_name
+    return Response(file_name.encode())
