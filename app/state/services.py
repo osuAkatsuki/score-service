@@ -22,7 +22,7 @@ http_client: httpx.AsyncClient
 amqp: aio_pika.abc.AbstractConnection | None
 amqp_channel: aio_pika.abc.AbstractChannel | None
 
-s3_client: S3Client
+s3_client: S3Client | None
 
 
 class Database:
