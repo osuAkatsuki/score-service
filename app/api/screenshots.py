@@ -25,15 +25,15 @@ FS_LIMIT = 500_000
 SS_NAME_LEN = 8
 
 
-async def is_ratelimit(ip: str) -> bool:
+async def should_ratelimit_ip(client_ip_address: str) -> bool:
     """Checks if an IP is ratelimited from taking screenshots. If not,
     it establishes the limit in Redis."""
 
-    rl_key = "less:ss_limit:" + ip
-    if await app.state.services.redis.get(rl_key):
+    redis_key = f"less:ss_limit:{client_ip_address}"
+    if await app.state.services.redis.get(redis_key):
         return True
 
-    await app.state.services.redis.setex(rl_key, SS_DELAY, 1)
+    await app.state.services.redis.setex(redis_key, SS_DELAY, 1)
     return False
 
 
@@ -59,18 +59,18 @@ async def fetch_screenshot(file_path: str) -> Response:
 async def upload_screenshot(
     user: User = Depends(authenticate_user(Form, "u", "p")),
     screenshot_file: UploadFile = File(None, alias="ss"),
-    user_agent: str = Header(...),
-    x_real_ip: str = Header(...),
+    client_user_agent: str = Header(..., alias="User-Agent"),
+    client_ip_address: str = Header(..., alias="X-Real-IP"),
 ) -> Response:
     if not await app.usecases.user.user_is_online(user.id):
         logging.error(f"{user} tried to upload a screenshot while offline")
         return Response(b"https://akatsuki.gg/")
 
-    if user_agent != "osu!":
+    if client_user_agent != "osu!":
         logging.error(f"{user} tried to upload a screenshot using a bot")
         return Response(b"https://akatsuki.gg/")
 
-    if await is_ratelimit(x_real_ip):
+    if await should_ratelimit_ip(client_ip_address):
         logging.error(f"{user} tried to upload a screenshot while ratelimited")
         return Response(b"https://akatsuki.gg/")
 
