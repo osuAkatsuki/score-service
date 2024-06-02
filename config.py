@@ -40,11 +40,11 @@ BEATMAP_UPDATE_HOOK = config("BEATMAP_UPDATE_HOOK")
 BOT_USER_ID = config("BOT_USER_ID", cast=int)
 FOKABOT_KEY = config("FOKABOT_KEY")
 
-AWS_REGION = config("AWS_REGION", default=None)
-AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default=None)
-AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default=None)
-AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL", default=None)
-AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default=None)
+AWS_REGION = config("AWS_REGION")
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL")
+AWS_BUCKET_NAME = config("AWS_BUCKET_NAME")
 
 AMQP_HOST = config("AMQP_HOST", default=None)
 amqp_port = config("AMQP_PORT", default=None)  # optional int

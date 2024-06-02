@@ -19,8 +19,8 @@ redis: aioredis.Redis
 
 http_client: httpx.AsyncClient
 
-amqp: aio_pika.RobustConnection
-amqp_channel: aio_pika.RobustChannel
+amqp: aio_pika.abc.AbstractConnection | None
+amqp_channel: aio_pika.abc.AbstractChannel | None
 
 s3_client: S3Client
 
@@ -63,7 +63,7 @@ class Database:
         values: dict[Any, Any] | None = None,
         column: Any = 0,
     ) -> Any:
-        val = await self.read_database.fetch_val(query, values, column)  # type: ignore
+        val = await self.read_database.fetch_val(query, values, column)
         return val
 
     async def execute(
@@ -71,7 +71,7 @@ class Database:
         query: ClauseElement | str,
         values: dict[Any, Any] | None = None,
     ) -> Any:
-        result = await self.write_database.execute(query, values)  # type: ignore
+        result = await self.write_database.execute(query, values)
         return result
 
     async def execute_many(

@@ -292,4 +292,5 @@ async def handle_pending_username_change(user_id: int) -> None:
 
 async def user_is_online(user_id: int) -> bool:
     key = f"bancho:tokens:ids:{user_id}"
-    return await app.state.services.redis.exists(key) == 1
+    val: int= await app.state.services.redis.exists(key)
+    return val == 1

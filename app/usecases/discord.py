@@ -137,7 +137,7 @@ class Webhook:
         if self.content and len(self.content) > 2000:
             raise Exception("Webhook content must be under " "2000 characters.")
 
-        payload = {"embeds": []}
+        payload: dict[str, Any] = {"embeds": []}
 
         for key in ("content", "username", "avatar_url", "tts", "file"):
             if (val := getattr(self, key)) is not None:
@@ -194,15 +194,16 @@ async def wrap_hook(webhook_url: str, embed: Embed) -> None:
         )
 
 
-def schedule_hook(hook: Optional[str], embed: Embed):
+def schedule_hook(hook: Optional[str], embed: Embed) -> None:
     """Performs a hook execution in a non-blocking manner."""
 
     if not hook:
-        return
+        return None
 
     job_scheduling.schedule_job(wrap_hook(hook, embed))
 
     logging.debug("Scheduled the performing of a discord webhook!")
+    return None
 
 
 EDIT_COL = "4360181"
