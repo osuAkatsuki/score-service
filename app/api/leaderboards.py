@@ -54,9 +54,6 @@ async def get_leaderboard(
 ) -> Response:
     start = time.perf_counter()
 
-    if user.id == 1001:
-        1 / 0
-
     mode = Mode.from_lb(mode_arg, mods_arg)
     mods = Mods(mods_arg)
 

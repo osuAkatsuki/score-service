@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - fix-multi-line-logs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

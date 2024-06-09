@@ -13,14 +13,6 @@ loggers:
     level: ERROR
     handlers: [console]
     propagate: no
-  uvicorn.error:
-    level: ERROR
-    handlers: [console]
-    propagate: no
-  uvicorn.access:
-    level: ERROR
-    handlers: [console]
-    propagate: no
 handlers:
   console:
     class: logging.StreamHandler
