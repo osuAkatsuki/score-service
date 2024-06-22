@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
+import urllib.parse
 from typing import Any
-from urllib.parse import unquote_plus
 
 import httpx
 from fastapi import Depends
@@ -40,9 +40,7 @@ async def osu_direct(
     mode: int = Query(..., alias="m", ge=-1, le=3),
     page: int = Query(..., alias="p"),
 ) -> Response:
-    search_url = f"{config.DIRECT_URL}/search"
-    if user.id == 1001:
-        search_url = "http://beatmaps-service-api-production.default.svc.cluster.local/api/search"
+    search_url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/search"
 
     page_size = 100
     page = page + 1  # the osu! client starts from page 0
@@ -51,7 +49,7 @@ async def osu_direct(
         "offset": page * page_size - 1,
     }
 
-    if unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
+    if urllib.parse.unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
         params["query"] = query
 
     if mode != -1:
@@ -151,7 +149,7 @@ async def beatmap_card(
 
         map_set_id = bmap.set_id
 
-    url = f"{config.DIRECT_URL}/s/{map_set_id}"
+    url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/s/{map_set_id}"
     try:
         response = await app.state.services.http_client.get(url, timeout=5)
         response.raise_for_status()
@@ -196,12 +194,8 @@ async def beatmap_card(
 
 
 async def download_map(set_id: str = Path(...)) -> Response:
-    if set_id == "141":  # meme
-        domain = "beatmaps.akatsuki.gg/api"
-    else:
-        domain = config.DIRECT_URL.split("/")[2]
-
+    url = urllib.parse.urlparse(config.BEATMAPS_SERVICE_BASE_URL)
     return RedirectResponse(
-        url=f"https://{domain}/d/{set_id}",
+        url=f"{url.scheme}://{url.netloc}/d/{set_id}",
         status_code=status.HTTP_301_MOVED_PERMANENTLY,
     )
