@@ -49,6 +49,7 @@ async def osu_direct(
         search_url = "http://beatmaps-service-api-production.default.svc.cluster.local/api/search"
 
     page_size = 100
+    page = page + 1  # the osu! client starts from page 0
     params: dict[str, Any] = {
         "amount": page_size,
         "offset": page * page_size - 1,
