@@ -48,7 +48,7 @@ async def osu_direct(
     if user.id == 1001:
         search_url = "http://beatmaps-service-api-production.default.svc.cluster.local/api/search"
 
-    params: dict[str, Any] = {"amount": 101, "offset": page_num}
+    params: dict[str, Any] = {"amount": 100, "offset": page_num}
 
     if unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
         params["query"] = query
