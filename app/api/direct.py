@@ -62,7 +62,7 @@ async def osu_direct(
         response = await app.state.services.http_client.get(
             search_url,
             params=params,
-            timeout=5,
+            timeout=15,
         )
         if response.status_code == status.HTTP_404_NOT_FOUND:
             return Response(b"-1\nFailed to retrieve data from the beatmap mirror.")
@@ -151,7 +151,7 @@ async def beatmap_card(
 
     url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/s/{map_set_id}"
     try:
-        response = await app.state.services.http_client.get(url, timeout=5)
+        response = await app.state.services.http_client.get(url, timeout=15)
         if response.status_code == status.HTTP_404_NOT_FOUND:
             return Response(b"")
         response.raise_for_status()
