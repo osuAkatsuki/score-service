@@ -205,7 +205,10 @@ async def beatmap_card(
 
 
 async def download_map(set_id: str = Path(...)) -> Response:
-    domain = config.DIRECT_URL.split("/")[2]
+    if set_id == "141":  # meme
+        domain = "beatmaps.akatsuki.gg/api"
+    else:
+        domain = config.DIRECT_URL.split("/")[2]
 
     return RedirectResponse(
         url=f"https://{domain}/d/{set_id}",
