@@ -194,8 +194,7 @@ async def beatmap_card(
 
 
 async def download_map(set_id: str = Path(...)) -> Response:
-    url = urllib.parse.urlparse(config.BEATMAPS_SERVICE_BASE_URL)
     return RedirectResponse(
-        url=f"{url.scheme}://{url.netloc}/d/{set_id}",
+        url=f"{config.BEATMAPS_SERVICE_BASE_URL}/api/d/{set_id}",
         status_code=status.HTTP_301_MOVED_PERMANENTLY,
     )
