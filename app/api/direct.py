@@ -42,13 +42,17 @@ async def osu_direct(
     ranked_status: int = Query(..., alias="r", ge=0, le=8),
     query: str = Query(..., alias="q"),
     mode: int = Query(..., alias="m", ge=-1, le=3),
-    page_num: int = Query(..., alias="p"),
+    page: int = Query(..., alias="p"),
 ) -> Response:
     search_url = f"{config.DIRECT_URL}/search"
     # if user.id == 1001:
     #     search_url = "http://beatmaps-service-api-production.default.svc.cluster.local/api/search"
 
-    params: dict[str, Any] = {"amount": 100, "offset": page_num}
+    page_size = 100
+    params: dict[str, Any] = {
+        "amount": page_size,
+        "offset": page * page_size - 1,
+    }
 
     if unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
         params["query"] = query
@@ -73,7 +77,8 @@ async def osu_direct(
             "Failed to search for results from the beatmap mirror",
             extra={
                 "query": query,
-                "page_num": page_num,
+                "page": page,
+                "page_size": page_size,
                 "game_mode": mode,
                 "ranked_status": ranked_status,
                 "url": search_url,
@@ -89,7 +94,7 @@ async def osu_direct(
     #        return b"-1\nFailed to retrieve data from the beatmap mirror."
 
     # NOTE: 101 informs the osu! client that there are more available
-    ret = [f"{'101' if len(result) == 100 else len(result)}"]
+    ret = ["101" if len(result) == 100 else str(len(result))]
 
     for bmap in result:
         if not bmap["ChildrenBeatmaps"]:
@@ -118,7 +123,7 @@ async def osu_direct(
                 device_id=None,
                 event_properties={
                     "query": query,
-                    "page_num": page_num,
+                    "page_num": page,
                     "game_mode": (
                         amplitude.format_mode(mode) if mode != -1 else "All modes"
                     ),
