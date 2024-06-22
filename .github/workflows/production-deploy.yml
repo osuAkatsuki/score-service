@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - new-beatmaps-search
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
