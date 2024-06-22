@@ -22,9 +22,9 @@ from app.models.user import User
 from app.usecases.user import authenticate_user
 
 DIRECT_SET_INFO_FMTSTR = (
-    "{{SetID}}.osz|{{Artist}}|{{Title}}|{{Creator}}|"
-    "{{RankedStatus}}|10.0|{{LastUpdate}}|{{SetID}}|"
-    "0|{{HasVideo}}|0|0|0|{{diffs}}"
+    "{SetID}.osz|{Artist}|{Title}|{Creator}|"
+    "{RankedStatus}|10.0|{LastUpdate}|{SetID}|"
+    "0|{HasVideo}|0|0|0|{diffs}"
 )
 
 DIRECT_MAP_INFO_FMTSTR = (
