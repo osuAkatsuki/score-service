@@ -88,8 +88,8 @@ async def osu_direct(
     #    if result["code"] != 200:
     #        return b"-1\nFailed to retrieve data from the beatmap mirror."
 
-    result_len = len(result)
-    ret = [f"{'101' if result_len == 100 else result_len}"]
+    # NOTE: 101 informs the osu! client that there are more available
+    ret = [f"{'101' if len(result) == 100 else len(result)}"]
 
     for bmap in result:
         if not bmap["ChildrenBeatmaps"]:
