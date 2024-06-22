@@ -152,12 +152,10 @@ async def beatmap_card(
     url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/s/{map_set_id}"
     try:
         response = await app.state.services.http_client.get(url, timeout=5)
+        if response.status_code == status.HTTP_404_NOT_FOUND:
+            return Response(b"")
         response.raise_for_status()
-    except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
-        if isinstance(exc, httpx.HTTPStatusError):
-            if exc.response.status_code == status.HTTP_404_NOT_FOUND:
-                return Response(b"")
-
+    except Exception:
         logging.exception(
             "Failed to retrieve data from the beatmap mirror",
             extra={
@@ -195,6 +193,6 @@ async def beatmap_card(
 
 async def download_map(set_id: str = Path(...)) -> Response:
     return RedirectResponse(
-        url=f"{config.BEATMAPS_SERVICE_BASE_URL}/api/d/{set_id}",
+        url=f"https://beatmaps.akatsuki.gg/api/d/{set_id}",
         status_code=status.HTTP_301_MOVED_PERMANENTLY,
     )
