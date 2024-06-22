@@ -145,7 +145,7 @@ async def beatmap_card(
     if map_set_id is None and map_id is not None:
         bmap = await app.usecases.beatmap.fetch_by_id(map_id)
         if bmap is None:
-            return Response(b"")
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
 
         map_set_id = bmap.set_id
 
@@ -153,7 +153,7 @@ async def beatmap_card(
     try:
         response = await app.state.services.http_client.get(url, timeout=15)
         if response.status_code == status.HTTP_404_NOT_FOUND:
-            return Response(b"")
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
         response.raise_for_status()
     except Exception:
         logging.exception(
@@ -165,7 +165,7 @@ async def beatmap_card(
                 "user_id": user.id,
             },
         )
-        return Response(b"")
+        return Response(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     json_data = response.json()
 
