@@ -45,8 +45,8 @@ async def osu_direct(
     page: int = Query(..., alias="p"),
 ) -> Response:
     search_url = f"{config.DIRECT_URL}/search"
-    # if user.id == 1001:
-    #     search_url = "http://beatmaps-service-api-production.default.svc.cluster.local/api/search"
+    if user.id == 1001:
+        search_url = "http://beatmaps-service-api-production.default.svc.cluster.local/api/search"
 
     page_size = 100
     params: dict[str, Any] = {
