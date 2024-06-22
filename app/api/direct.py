@@ -21,15 +21,11 @@ from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user
 
-USING_CHIMU = "https://api.chimu.moe/v1" == config.DIRECT_URL
-USING_KITSU = "https://us.kitsu.moe/api" == config.DIRECT_URL
-CHIMU_SET_ID_SPELLING = "SetId" if USING_CHIMU else "SetID"
-
 DIRECT_SET_INFO_FMTSTR = (
-    "{{{chimu_set_id_spelling}}}.osz|{{Artist}}|{{Title}}|{{Creator}}|"
-    "{{RankedStatus}}|10.0|{{LastUpdate}}|{{{chimu_set_id_spelling}}}|"
+    "{{SetID}}.osz|{{Artist}}|{{Title}}|{{Creator}}|"
+    "{{RankedStatus}}|10.0|{{LastUpdate}}|{{SetID}}|"
     "0|{{HasVideo}}|0|0|0|{{diffs}}"
-).format(chimu_set_id_spelling="SetId" if USING_CHIMU else "SetID")
+)
 
 DIRECT_MAP_INFO_FMTSTR = (
     "[{DifficultyRating:.2f}⭐] {DiffName} "
@@ -155,7 +151,7 @@ async def beatmap_card(
 
         map_set_id = bmap.set_id
 
-    url = f"{config.DIRECT_URL}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
+    url = f"{config.DIRECT_URL}/s/{map_set_id}"
     try:
         response = await app.state.services.http_client.get(url, timeout=5)
         response.raise_for_status()
@@ -175,9 +171,7 @@ async def beatmap_card(
         )
         return Response(b"")
 
-    result = response.json()
-
-    json_data = result["data"] if USING_CHIMU else result
+    json_data = response.json()
 
     if config.AMPLITUDE_API_KEY:
         job_scheduling.schedule_job(
@@ -194,12 +188,9 @@ async def beatmap_card(
 
     return Response(
         (
-            "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
-            "{RankedStatus}|10.0|{LastUpdate}|{chimu_spell}|"
-            "0|0|0|0|0".format(
-                **json_data,
-                chimu_spell=json_data[CHIMU_SET_ID_SPELLING],
-            )
+            "{SetID}.osz|{Artist}|{Title}|{Creator}|"
+            "{RankedStatus}|10.0|{LastUpdate}|{SetID}|"
+            "0|0|0|0|0".format(**json_data)
         ).encode(),
     )
 
