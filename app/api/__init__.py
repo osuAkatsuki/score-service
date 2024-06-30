@@ -34,7 +34,7 @@ async def healthcheck() -> Response:
     return ORJSONResponse({"status": "ok"})
 
 
-router.add_api_route("/web/osu-osz2-getscores.php", leaderboards.get_leaderboard)
+router.add_api_route("/web/osu-osz-getscores.php", leaderboards.get_leaderboard)
 router.add_api_route(
     "/web/osu-submit-modular-selector.php",
     score_sub.submit_score,
