@@ -93,7 +93,8 @@ async def get_full_replay(score_id: int = Path(...)) -> Response:
     if username is None:
         return Response(b"User not found!")
 
-    filename = f"replay-{get_replay_mode_name(score.mode)}_{beatmap.id}_{score_id}.osr"
+    game_mode_str = get_replay_mode_name(score.mode.as_vn)
+    filename = f"replay-{game_mode_str}_{beatmap.id}_{score_id}.osr"
 
     logging.info(f"Serving compiled replay ID {score_id}")
     return Response(
