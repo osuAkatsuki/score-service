@@ -84,7 +84,7 @@ async def get_full_replay(score_id: int = Path(...)) -> Response:
     if username is None:
         return Response(b"User not found!")
 
-    filename = f"osu-akatsuki-replay-{score_id}.osr"
+    filename = f"replay-osu_{beatmap.id}_{score_id}.osr"
 
     logging.info(f"Serving compiled replay ID {score_id}")
     return Response(
