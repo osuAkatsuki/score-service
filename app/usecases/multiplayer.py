@@ -61,7 +61,7 @@ async def insert_match_game_score(
         """
         INSERT INTO match_game_scores
             (id, match_id, game_id, user_id, mode, count_300, count_100, count_50, count_miss,
-            count_geki, count_katu, score, accuracy, max_combo, mods, passed, team, timestamp)
+             count_geki, count_katu, score, accuracy, max_combo, mods, passed, team, timestamp)
         VALUES
             (NULL, :match_id, :game_id, :user_id, :mode, :count_300, :count_100, :count_50, :count_miss,
              :count_geki, :count_katu, :score, :accuracy, :max_combo, :mods, :passed, :team, :timestamp)
