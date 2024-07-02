@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 import app.state.services
@@ -56,32 +57,33 @@ async def insert_match_game_score(
         nmiss=count_miss,
         vanilla_mode=mode,
     )
-
-    await app.state.services.database.execute(
-        """
-        INSERT INTO match_game_scores
-            (id, match_id, game_id, user_id, mode, count_300, count_100, count_50, count_miss,
-             count_geki, count_katu, score, accuracy, max_combo, mods, passed, team, timestamp)
-        VALUES
-            (NULL, :match_id, :game_id, :user_id, :mode, :count_300, :count_100, :count_50, :count_miss,
-             :count_geki, :count_katu, :score, :accuracy, :max_combo, :mods, :passed, :team, NOW())
-        """,
-        {
-            "match_id": match_id,
-            "game_id": game_id,
-            "user_id": user_id,
-            "mode": mode,
-            "count_300": count_300,
-            "count_100": count_100,
-            "count_50": count_50,
-            "count_miss": count_miss,
-            "count_geki": count_geki,
-            "count_katu": count_katu,
-            "score": score,
-            "accuracy": accuracy,
-            "max_combo": max_combo,
-            "mods": mods,
-            "passed": passed,
-            "team": team,
-        },
-    )
+    query = """
+    INSERT INTO match_game_scores
+        (id, match_id, game_id, user_id, mode, count_300, count_100, count_50, count_miss,
+         count_geki, count_katu, score, accuracy, max_combo, mods, passed, team, timestamp)
+    VALUES
+        (NULL, :match_id, :game_id, :user_id, :mode, :count_300, :count_100, :count_50, :count_miss,
+         :count_geki, :count_katu, :score, :accuracy, :max_combo, :mods, :passed, :team, NOW())
+    """
+    params = {
+        "match_id": match_id,
+        "game_id": game_id,
+        "user_id": user_id,
+        "mode": mode,
+        "count_300": count_300,
+        "count_100": count_100,
+        "count_50": count_50,
+        "count_miss": count_miss,
+        "count_geki": count_geki,
+        "count_katu": count_katu,
+        "score": score,
+        "accuracy": accuracy,
+        "max_combo": max_combo,
+        "mods": mods,
+        "passed": passed,
+        "team": team,
+    }
+    try:
+        await app.state.services.database.execute(query, params)
+    except Exception:
+        logging.exception("Failed to insert match game score", extra=params)
