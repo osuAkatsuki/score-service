@@ -60,6 +60,15 @@ async def get_replay(
     return Response(content=replay_bytes)
 
 
+def get_replay_mode_name(mode: int) -> str:
+    return {
+        0: "osu",
+        1: "taiko",
+        2: "fruits",
+        3: "mania",
+    }[mode]
+
+
 async def get_full_replay(score_id: int = Path(...)) -> Response:
     mode_rep = Mode.from_offset(score_id)
 
@@ -83,14 +92,6 @@ async def get_full_replay(score_id: int = Path(...)) -> Response:
     username = await app.usecases.usernames.get_username(score.user_id)
     if username is None:
         return Response(b"User not found!")
-
-    def get_replay_mode_name(mode: int) -> str:
-        return {
-            0: "osu",
-            1: "taiko",
-            2: "fruits",
-            3: "mania",
-        }[mode]
 
     filename = f"replay-{get_replay_mode_name(score.mode)}_{beatmap.id}_{score_id}.osr"
 
