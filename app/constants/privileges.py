@@ -32,7 +32,7 @@ class Privileges(IntFlag):
     USER_PREMIUM = 1 << 23
     ADMIN_FREEZE_USERS = 1 << 24
     ADMIN_MANAGE_NOMINATORS = 1 << 25
-    
+
     @property
     def is_restricted(self) -> bool:
         """Checks if user is restricted."""
