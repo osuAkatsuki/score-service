@@ -41,7 +41,8 @@ from app.models.score_submission_request import ScoreSubmissionRequest
 from app.redis_lock import RedisLock
 from app.usecases import multiplayer
 from app.usecases.user import restrict_user
-from app.utils.score_utils import calculate_accuracy, calculate_grade
+from app.utils.score_utils import calculate_accuracy
+from app.utils.score_utils import calculate_grade
 
 
 class ScoreData(NamedTuple):
