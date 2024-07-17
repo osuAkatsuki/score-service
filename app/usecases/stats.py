@@ -12,7 +12,8 @@ async def fetch(user_id: int, mode: Mode) -> Stats | None:
     db_stats = await app.state.services.database.fetch_one(
         """
         SELECT ranked_score, total_score, pp, avg_accuracy AS accuracy, playcount,
-               playtime, max_combo, total_hits, replays_watched, xh_count, x_count, sh_count, s_count, a_count, b_count, c_count, d_count
+               playtime, max_combo, total_hits, replays_watched, xh_count,
+               x_count, sh_count, s_count, a_count, b_count, c_count, d_count
         FROM user_stats
         WHERE user_id = :user_id
         AND mode = :mode
