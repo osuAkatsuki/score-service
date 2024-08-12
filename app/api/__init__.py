@@ -11,6 +11,7 @@ from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
 import app.state.services
+from . import aggregate_score_stats
 from . import direct
 from . import favourites
 from . import lastfm
@@ -21,7 +22,6 @@ from . import replays
 from . import score_sub
 from . import screenshots
 from . import seasonals
-from app.api import aggregate_score_stats
 from app.models.user import User
 from app.usecases.user import authenticate_user
 
