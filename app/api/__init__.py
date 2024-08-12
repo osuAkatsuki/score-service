@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from app.api import aggregate_score_stats
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Path
@@ -22,6 +21,7 @@ from . import replays
 from . import score_sub
 from . import screenshots
 from . import seasonals
+from app.api import aggregate_score_stats
 from app.models.user import User
 from app.usecases.user import authenticate_user
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import app.state.services
 
 
@@ -11,5 +13,5 @@ async def total_scores_set() -> int:
                 """,
             )
             for table in ("scores", "scores_relax", "scores_ap")
-        ]
+        ],
     )
