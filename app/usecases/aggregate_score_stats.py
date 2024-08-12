@@ -11,7 +11,8 @@ async def total_scores_set() -> int:
                 SELECT count(*)
                 FROM {table}
                 """,
-            ) or 0
+            )
+            or 0
             for table in ("scores", "scores_relax", "scores_ap")
         ],
     )
