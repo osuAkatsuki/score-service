@@ -73,7 +73,7 @@ router.add_api_route("/web/osu-getfavourites.php", favourites.get_favourites)
 router.add_api_route("/api/v1/pp", pp.calculate_pp)
 
 router.add_api_route(
-    "/v1/aggregate-score-stats/total-scores-set",
+    "/public/api/v1/aggregate-score-stats/total-scores-set",
     aggregate_score_stats.total_scores_set,
 )
 
