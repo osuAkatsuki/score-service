@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - aggregate-apis
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
