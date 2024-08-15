@@ -11,6 +11,7 @@ from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
 import app.state.services
+from . import aggregate_score_stats
 from . import direct
 from . import favourites
 from . import lastfm
@@ -70,6 +71,11 @@ router.add_api_route("/web/osu-addfavourite.php", favourites.add_favourite)
 router.add_api_route("/web/osu-getfavourites.php", favourites.get_favourites)
 
 router.add_api_route("/api/v1/pp", pp.calculate_pp)
+
+router.add_api_route(
+    "/public/api/v1/aggregate-score-stats/total-scores-set",
+    aggregate_score_stats.total_scores_set,
+)
 
 
 @router.get("/web/bancho-connect.php")
