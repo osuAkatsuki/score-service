@@ -24,7 +24,6 @@ from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
-import app.repositories
 import app.repositories.leaderboards
 import app.state
 import app.usecases

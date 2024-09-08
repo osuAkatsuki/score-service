@@ -17,6 +17,7 @@ class Leaderboard:
     scores: list[LeaderboardScore]
     personal_best: LeaderboardScore | None
 
+
 async def fetch_personal_best(
     beatmap: Beatmap,
     mode: Mode,
@@ -44,6 +45,7 @@ async def fetch_personal_best(
     )
 
     return personal_best
+
 
 async def fetch_beatmap_leaderboard(
     beatmap: Beatmap,
