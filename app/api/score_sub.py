@@ -24,6 +24,8 @@ from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
+import app.repositories
+import app.repositories.leaderboards
 import app.state
 import app.usecases
 import config
@@ -164,13 +166,12 @@ async def submit_score(
         return Response(b"")  # empty resp tells osu to retry
 
     score = Score.from_submission(score_data[2:], beatmap_md5, user)
-    leaderboard = await app.usecases.leaderboards.fetch_beatmap_leaderboard(
+    previous_best = await app.usecases.leaderboards.fetch_personal_best(
         beatmap,
         score.mode,
         requestee_user_id=user.id,
         vanilla_pp_leaderboards=False,
     )
-    previous_best = leaderboard.personal_best
 
     score.acc = calculate_accuracy(
         n300=score.n300,
