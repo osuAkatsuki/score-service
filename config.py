@@ -70,3 +70,5 @@ REDIS_USE_SSL = config("REDIS_USE_SSL", cast=bool)
 SCORE_SUBMISSION_ROUTING_KEYS: list[str] = list(
     config("SCORE_SUBMISSION_ROUTING_KEYS", cast=CommaSeparatedStrings),
 )
+
+LEADERBOARD_SIZE = config("LEADERBOARD_SIZE", cast=int, default=100)

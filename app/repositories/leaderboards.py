@@ -37,11 +37,11 @@ async def fetch_beatmap_leaderboard(
     play_mode: int,
     requestee_user_id: int,
     scores_table: Literal["scores", "scores_relax", "scores_ap"],
+    score_limit: int,
     mods_filter: int | None = None,
     country_filter: str | None = None,
     user_ids_filter: list[int] | None = None,
     best_scores_only: bool = True,
-    score_limit: int = 100,
     sort_column: Literal["pp", "score"] = "pp",
 ) -> list[LeaderboardScore]:
     params = {

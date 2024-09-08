@@ -10,9 +10,11 @@ from fastapi import Response
 
 import app.state
 import app.usecases
+import config
 from app.constants.leaderboard_type import LeaderboardType
 from app.constants.mode import Mode
 from app.constants.mods import Mods
+from app.constants.privileges import Privileges
 from app.models.user import User
 from app.repositories.leaderboards import LeaderboardScore
 from app.usecases.user import authenticate_user
@@ -105,6 +107,11 @@ async def get_leaderboard(
             else None
         )
 
+        if user.privileges & Privileges.USER_PREMIUM and user.leaderboard_size is not None:
+            leaderboard_size = user.leaderboard_size
+        else:
+            leaderboard_size = config.LEADERBOARD_SIZE
+
         leaderboard = await app.usecases.leaderboards.fetch_beatmap_leaderboard(
             beatmap,
             mode,
@@ -113,6 +120,7 @@ async def get_leaderboard(
             mods_filter=mods_filter,
             country_filter=country_filter,
             user_ids_filter=user_ids_filter,
+            leaderboard_size=leaderboard_size,
         )
 
         response_lines.append(

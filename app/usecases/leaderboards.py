@@ -24,10 +24,10 @@ async def fetch_beatmap_leaderboard(
     *,
     requestee_user_id: int,
     vanilla_pp_leaderboards: bool,
+    leaderboard_size: int,
     mods_filter: Mods | None = None,
     country_filter: str | None = None,
     user_ids_filter: list[int] | None = None,
-    leaderboard_size: int = 100,
 ) -> Leaderboard:
     # if there is a mods filter we will allow non-bests
     # so that a user's best modded score will appear
