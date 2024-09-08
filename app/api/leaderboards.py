@@ -107,7 +107,10 @@ async def get_leaderboard(
             else None
         )
 
-        if user.privileges & Privileges.USER_PREMIUM and user.leaderboard_size is not None:
+        if (
+            user.privileges & Privileges.USER_PREMIUM
+            and user.leaderboard_size is not None
+        ):
             leaderboard_size = user.leaderboard_size
         else:
             leaderboard_size = config.LEADERBOARD_SIZE
