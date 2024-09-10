@@ -15,6 +15,7 @@ class User:
     password_bcrypt: str
     country: str
     vanilla_pp_leaderboards: bool
+    leaderboard_size: int | None
 
     def __repr__(self) -> str:
         return f"<{self.name} ({self.id})>"
