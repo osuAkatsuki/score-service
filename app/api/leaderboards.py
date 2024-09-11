@@ -8,6 +8,7 @@ from fastapi import Depends
 from fastapi import Query
 from fastapi import Response
 
+import app.adapters.feature_flags
 import app.state
 import app.usecases
 import config
@@ -110,6 +111,10 @@ async def get_leaderboard(
         if (
             user.privileges & Privileges.USER_PREMIUM
             and user.leaderboard_size is not None
+            and app.adapters.feature_flags.is_feature_enabled(
+                "use_custom_leaderboard_size",
+                user_id=str(user.id),
+            )
         ):
             leaderboard_size = user.leaderboard_size
         else:
