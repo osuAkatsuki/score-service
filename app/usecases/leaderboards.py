@@ -30,7 +30,7 @@ async def fetch_personal_best(
     # so that a user's best modded score will appear
     best_scores_only = mods_filter is None
 
-    int_mods_filter = int(mods_filter) if mods_filter else None
+    int_mods_filter = int(mods_filter) if mods_filter else 0
 
     sort_column = mode.sort if not vanilla_pp_leaderboards else "pp"
 
