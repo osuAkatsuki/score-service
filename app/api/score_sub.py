@@ -186,7 +186,7 @@ async def submit_score(
     await app.usecases.user.update_latest_activity(user.id)
 
     if not are_mods_rankable_for_beatmap(score.mods, beatmap):
-        logging.info(
+        logging.warning(
             "Score submission denied due to unrankable mods",
             extra={
                 "beatmap": amplitude.format_beatmap(beatmap),
@@ -630,7 +630,7 @@ async def submit_score(
 
     end = time.perf_counter()
 
-    logging.info(
+    logging.debug(
         "Processed score submission",
         extra={
             "username": user.name,

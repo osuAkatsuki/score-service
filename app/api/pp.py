@@ -74,7 +74,7 @@ async def calculate_pp(
             miss_count=0,
         )
 
-    logging.info(f"Handled PP calculation API request for {beatmap.song_name}!")
+    logging.debug(f"Handled PP calculation API request for {beatmap.song_name}!")
 
     return ORJSONResponse(
         {
