@@ -56,7 +56,7 @@ async def get_replay(
             ),
         )
 
-    logging.info(f"Served replay ID {score_id}")
+    logging.debug(f"Served replay ID {score_id}")
     return Response(content=replay_bytes)
 
 
