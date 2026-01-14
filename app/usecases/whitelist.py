@@ -6,13 +6,13 @@ from app.constants.mode import Mode
 # 0 = none
 # 1 = vanilla
 # 2 = relax
-# 2 = autopilot
-# 3 = all
+# 4 = autopilot
+# 7 = all
 
 
 def _match_verified(whitelist_int: int, mode: Mode) -> bool:
     if mode.autopilot:
-        return whitelist_int & 2 != 0  # TODO: make this 4 to separate from rx
+        return whitelist_int & 4 != 0
     elif mode.relax:
         return whitelist_int & 2 != 0
     else:
