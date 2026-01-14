@@ -76,6 +76,8 @@ class Mods(IntFlag):
 
         return _mods
 
+    KEY_MODS = KEY1 | KEY2 | KEY3 | KEY4 | KEY5 | KEY6 | KEY7 | KEY8 | KEY9
+
     @property
     def conflict(self) -> bool:
         """Anticheat measure to check for illegal mod combos."""
@@ -85,6 +87,12 @@ class Mods(IntFlag):
         elif self & Mods.NIGHTCORE and not self & Mods.DOUBLETIME:
             return True
         elif self & Mods.EASY and self & Mods.HARDROCK:
+            return True
+        elif self & Mods.RELAX and self & Mods.AUTOPILOT:
+            return True
+        elif self & Mods.HIDDEN and self & Mods.FADEIN:
+            return True
+        elif bin(self & Mods.KEY_MODS).count("1") > 1:
             return True
 
         return False
