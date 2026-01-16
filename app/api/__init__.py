@@ -30,7 +30,7 @@ router = APIRouter(default_response_class=Response)
 
 @router.get("/_health")
 async def healthcheck() -> Response:
-    await app.state.services.redis.ping()
+    await app.state.services.redis.ping()  # type: ignore[misc]
     await app.state.services.database.execute("SELECT 1")
     return ORJSONResponse({"status": "ok"})
 
