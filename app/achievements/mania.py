@@ -9,6 +9,11 @@ from app.models.stats import Stats
 registry = AchievementRegistry()
 
 
+# ====================
+# Skill Pass Achievements
+# ====================
+
+
 @registry.achievement(file="mania-skill-pass-1")
 def mania_skill_pass_1(score: Score, mode_vn: int, stats: Stats) -> bool:
     return (
@@ -65,6 +70,11 @@ def mania_skill_pass_8(score: Score, mode_vn: int, stats: Stats) -> bool:
     )
 
 
+# ====================
+# Skill FC Achievements
+# ====================
+
+
 @registry.achievement(file="mania-skill-fc-1")
 def mania_skill_fc_1(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 1 <= score.sr < 2 and mode_vn == Mode.MANIA
@@ -105,6 +115,11 @@ def mania_skill_fc_8(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 8 <= score.sr < 9 and mode_vn == Mode.MANIA
 
 
+# ====================
+# Hit Count Achievements
+# ====================
+
+
 @registry.achievement(file="mania-hits-40000")
 def mania_hits_40000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 40_000 <= stats.total_hits and mode_vn == Mode.MANIA
@@ -123,3 +138,28 @@ def mania_hits_4000000(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="mania-hits-40000000")
 def mania_hits_40000000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 40_000_000 <= stats.total_hits and mode_vn == Mode.MANIA
+
+
+# ====================
+# Rank Achievements
+# ====================
+
+
+@registry.achievement(file="mania-rank-50000")
+def mania_rank_50k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 50_000 and mode_vn == Mode.MANIA
+
+
+@registry.achievement(file="mania-rank-10000")
+def mania_rank_10k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 10_000 and mode_vn == Mode.MANIA
+
+
+@registry.achievement(file="mania-rank-5000")
+def mania_rank_5k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 5_000 and mode_vn == Mode.MANIA
+
+
+@registry.achievement(file="mania-rank-1000")
+def mania_rank_1k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 1_000 and mode_vn == Mode.MANIA

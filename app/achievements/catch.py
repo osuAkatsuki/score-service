@@ -9,6 +9,11 @@ from app.models.stats import Stats
 registry = AchievementRegistry()
 
 
+# ====================
+# Skill Pass Achievements
+# ====================
+
+
 @registry.achievement(file="fruits-skill-pass-1")
 def catch_skill_pass_1(score: Score, mode_vn: int, stats: Stats) -> bool:
     return (
@@ -65,6 +70,11 @@ def catch_skill_pass_8(score: Score, mode_vn: int, stats: Stats) -> bool:
     )
 
 
+# ====================
+# Skill FC Achievements
+# ====================
+
+
 @registry.achievement(file="fruits-skill-fc-1")
 def catch_skill_fc_1(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 1 <= score.sr < 2 and mode_vn == Mode.CATCH
@@ -105,6 +115,11 @@ def catch_skill_fc_8(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 8 <= score.sr < 9 and mode_vn == Mode.CATCH
 
 
+# ====================
+# Hit Count Achievements
+# ====================
+
+
 @registry.achievement(file="fruits-hits-20000")
 def fruits_hits_20000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 20_000 <= stats.total_hits and mode_vn == Mode.CATCH
@@ -123,3 +138,28 @@ def fruits_hits_2000000(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="fruits-hits-20000000")
 def fruits_hits_20000000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 20_000_000 <= stats.total_hits and mode_vn == Mode.CATCH
+
+
+# ====================
+# Rank Achievements
+# ====================
+
+
+@registry.achievement(file="fruits-rank-50000")
+def catch_rank_50k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 50_000 and mode_vn == Mode.CATCH
+
+
+@registry.achievement(file="fruits-rank-10000")
+def catch_rank_10k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 10_000 and mode_vn == Mode.CATCH
+
+
+@registry.achievement(file="fruits-rank-5000")
+def catch_rank_5k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 5_000 and mode_vn == Mode.CATCH
+
+
+@registry.achievement(file="fruits-rank-1000")
+def catch_rank_1k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 1_000 and mode_vn == Mode.CATCH

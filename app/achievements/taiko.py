@@ -9,6 +9,11 @@ from app.models.stats import Stats
 registry = AchievementRegistry()
 
 
+# ====================
+# Skill Pass Achievements
+# ====================
+
+
 @registry.achievement(file="taiko-skill-pass-1")
 def my_first_don(score: Score, mode_vn: int, stats: Stats) -> bool:
     return (
@@ -65,6 +70,11 @@ def rhythm_incarnate(score: Score, mode_vn: int, stats: Stats) -> bool:
     )
 
 
+# ====================
+# Skill FC Achievements
+# ====================
+
+
 @registry.achievement(file="taiko-skill-fc-1")
 def keeping_time(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 1 <= score.sr < 2 and mode_vn == Mode.TAIKO
@@ -105,6 +115,11 @@ def the_drummers_throne(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 8 <= score.sr < 9 and mode_vn == Mode.TAIKO
 
 
+# ====================
+# Hit Count Achievements
+# ====================
+
+
 @registry.achievement(file="taiko-hits-30000")
 def hits_30000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 30_000 <= stats.total_hits and mode_vn == Mode.TAIKO
@@ -123,3 +138,28 @@ def hits_3000000(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="taiko-hits-30000000")
 def hits_30000000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 30_000_000 <= stats.total_hits and mode_vn == Mode.TAIKO
+
+
+# ====================
+# Rank Achievements
+# ====================
+
+
+@registry.achievement(file="taiko-rank-50000")
+def taiko_rank_50k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 50_000 and mode_vn == Mode.TAIKO
+
+
+@registry.achievement(file="taiko-rank-10000")
+def taiko_rank_10k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 10_000 and mode_vn == Mode.TAIKO
+
+
+@registry.achievement(file="taiko-rank-5000")
+def taiko_rank_5k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 5_000 and mode_vn == Mode.TAIKO
+
+
+@registry.achievement(file="taiko-rank-1000")
+def taiko_rank_1k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 1_000 and mode_vn == Mode.TAIKO
