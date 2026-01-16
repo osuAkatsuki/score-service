@@ -9,6 +9,11 @@ from app.models.stats import Stats
 registry = AchievementRegistry()
 
 
+# ====================
+# Skill Pass Achievements
+# ====================
+
+
 @registry.achievement(file="osu-skill-pass-1")
 def rising_star(score: Score, mode_vn: int, stats: Stats) -> bool:
     return (score.mods & Mods.NOFAIL == 0) and 1 <= score.sr < 2 and mode_vn == Mode.STD
@@ -63,6 +68,11 @@ def phantasm(score: Score, mode_vn: int, stats: Stats) -> bool:
     )
 
 
+# ====================
+# Skill FC Achievements
+# ====================
+
+
 @registry.achievement(file="osu-skill-fc-1")
 def totality(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 1 <= score.sr < 2 and mode_vn == Mode.STD
@@ -111,3 +121,78 @@ def chosen(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="osu-skill-fc-10")
 def unfathomable(score: Score, mode_vn: int, stats: Stats) -> bool:
     return score.full_combo and 10 <= score.sr < 11 and mode_vn == Mode.STD
+
+
+# ====================
+# Combo Achievements
+# ====================
+
+
+@registry.achievement(file="osu-combo-500")
+def combo_500(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 500 <= score.max_combo and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-combo-750")
+def combo_750(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 750 <= score.max_combo and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-combo-1000")
+def combo_1000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 1_000 <= score.max_combo and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-combo-2000")
+def combo_2000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 2_000 <= score.max_combo and mode_vn == Mode.STD
+
+
+# ====================
+# Playcount Achievements
+# ====================
+
+
+@registry.achievement(file="osu-plays-5000")
+def plays_5000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 5_000 <= stats.playcount and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-plays-15000")
+def plays_15000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 15_000 <= stats.playcount and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-plays-25000")
+def plays_25000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 25_000 <= stats.playcount and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-plays-50000")
+def plays_50000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 50_000 <= stats.playcount and mode_vn == Mode.STD
+
+
+# ====================
+# Rank Achievements
+# ====================
+
+
+@registry.achievement(file="osu-rank-50000")
+def std_rank_50k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 50_000 and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-rank-10000")
+def std_rank_10k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 10_000 and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-rank-5000")
+def std_rank_5k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 5_000 and mode_vn == Mode.STD
+
+
+@registry.achievement(file="osu-rank-1000")
+def std_rank_1k(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return stats.rank <= 1_000 and mode_vn == Mode.STD
