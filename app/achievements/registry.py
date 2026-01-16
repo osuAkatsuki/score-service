@@ -40,7 +40,7 @@ class AchievementRegistry:
 
             @registry.achievement(file="osu-skill-pass-1")
             def rising_star(score: Score, mode_vn: int, stats: Stats) -> bool:
-                return (score.mods & 1 == 0) and 1 <= score.sr < 2 and mode_vn == 0
+                return (score.mods & Mods.NOFAIL == 0) and 1 <= score.sr < 2 and mode_vn == Mode.STD
         """
 
         def decorator(

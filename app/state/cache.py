@@ -10,8 +10,8 @@ ACHIEVEMENTS: list[Achievement] = []
 async def init_cache() -> None:
     """Load achievements from decorator registry.
 
-    Achievements are now defined as type-safe Python functions with the
-    @achievement decorator, eliminating the security risk of code execution.
+    Achievements are defined as type-safe Python functions with the
+    @achievement decorator.
     """
     # Load achievement metadata from database to verify all are registered
     db_achievements = await app.state.services.database.fetch_all(
