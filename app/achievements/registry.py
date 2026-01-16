@@ -13,7 +13,7 @@ class Achievement:
     condition_func: Callable[[Score, int, Stats], bool]
 
 
-class Registry:
+class AchievementRegistry:
     """Registry for achievement condition functions.
 
     Similar to FastAPI's APIRouter, allows modular definition of achievements
@@ -36,7 +36,7 @@ class Registry:
             Decorator function that registers the achievement
 
         Example:
-            registry = Registry()
+            registry = AchievementRegistry()
 
             @registry.achievement(file="osu-skill-pass-1")
             def rising_star(score: Score, mode_vn: int, stats: Stats) -> bool:
@@ -54,13 +54,13 @@ class Registry:
 
         return decorator
 
-    def include(self, other: Registry) -> None:
+    def include(self, other: AchievementRegistry) -> None:
         """Include all achievements from another registry.
 
         Similar to FastAPI's router.include_router().
 
         Args:
-            other: Another Registry to merge into this one
+            other: Another AchievementRegistry to merge into this one
         """
         self._achievements.update(other._achievements)
 

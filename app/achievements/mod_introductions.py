@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from app.achievements.registry import Registry
+from app.achievements.registry import AchievementRegistry
 from app.constants.mods import Mods
 from app.models.score import Score
 from app.models.stats import Stats
 
-registry = Registry()
-# These achievements unlock when passing a map with specific mods
+registry = AchievementRegistry()
 
 
 @registry.achievement(file="all-intro-suddendeath")

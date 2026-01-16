@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from app.achievements.registry import Registry
+from app.achievements.registry import AchievementRegistry
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.models.stats import Stats
 
-registry = Registry()
+registry = AchievementRegistry()
 
 
 @registry.achievement(file="osu-combo-500")
