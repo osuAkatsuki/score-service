@@ -1,24 +1,43 @@
 from __future__ import annotations
 
 import app.state
+from app.achievements import registry
 from app.models.achievement import Achievement
 
 ACHIEVEMENTS: list[Achievement] = []
 
 
 async def init_cache() -> None:
+    """Load achievements from decorator registry.
+
+    Achievements are now defined as type-safe Python functions with the
+    @achievement decorator, eliminating the security risk of code execution.
+    """
+    # Load achievement metadata from database to verify all are registered
     db_achievements = await app.state.services.database.fetch_all(
-        "SELECT * FROM less_achievements",
+        "SELECT id, file, name, desc FROM less_achievements",
     )
 
-    for achievement in db_achievements:
-        condition = eval(f"lambda score, mode_vn, stats: {achievement['cond']}")
+    # Build achievements from registry
+    for db_achievement in db_achievements:
+        achievement_file = db_achievement["file"]
+
+        # Look up the registered achievement condition function
+        if achievement_file not in registry.achievements:
+            # Skip achievements not yet implemented in decorator system
+            # (e.g., new achievements added to DB but not yet coded)
+            continue
+
+        registered = registry.achievements[achievement_file]
+
+        # Use database values for id/name/desc (allows easy updates via DB)
+        # but use registry function for condition (type-safe, no execution)
         ACHIEVEMENTS.append(
             Achievement(
-                id=achievement["id"],
-                file=achievement["file"],
-                name=achievement["name"],
-                desc=achievement["desc"],
-                cond=condition,
+                id=db_achievement["id"],
+                file=achievement_file,
+                name=db_achievement["name"],
+                desc=db_achievement["desc"],
+                cond=registered.condition_func,
             ),
         )
