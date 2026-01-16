@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import logging
+
 import app.state
 from app.achievements import registry
 from app.models.achievement import Achievement
+
+logger = logging.getLogger(__name__)
 
 ACHIEVEMENTS: list[Achievement] = []
 
@@ -23,12 +27,19 @@ async def init_cache() -> None:
         achievement_file = db_achievement["file"]
 
         # Look up the registered achievement condition function
-        if achievement_file not in registry.achievements:
+        registered_achievement = registry.achievements.get(achievement_file)
+        if registered_achievement is None:
             # Skip achievements not yet implemented in decorator system
             # (e.g., new achievements added to DB but not yet coded)
+            logger.warning(
+                "Achievement in database not found in registry",
+                extra={
+                    "achievement_id": db_achievement["id"],
+                    "achievement_file": achievement_file,
+                    "achievement_name": db_achievement["name"],
+                },
+            )
             continue
-
-        registered = registry.achievements[achievement_file]
 
         # Use database values for id/name/desc (allows easy updates via DB)
         # but use registry function for condition (type-safe, no execution)
@@ -38,6 +49,6 @@ async def init_cache() -> None:
                 file=achievement_file,
                 name=db_achievement["name"],
                 desc=db_achievement["desc"],
-                cond=registered.condition_func,
+                cond=registered_achievement.condition_func,
             ),
         )
