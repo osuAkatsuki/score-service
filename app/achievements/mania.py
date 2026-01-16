@@ -118,3 +118,8 @@ def mania_hits_400000(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="mania-hits-4000000")
 def mania_hits_4000000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 4_000_000 <= stats.total_hits and mode_vn == Mode.MANIA
+
+
+@registry.achievement(file="mania-hits-40000000")
+def mania_hits_40000000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 40_000_000 <= stats.total_hits and mode_vn == Mode.MANIA
