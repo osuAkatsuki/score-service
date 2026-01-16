@@ -14,6 +14,7 @@ mode_str = (
     "std!rx",
     "taiko!rx",
     "catch!rx",
+    None,  # Index 7: historical autopilot mode (unused since April 21, 2024)
     "std!ap",
 )
 
