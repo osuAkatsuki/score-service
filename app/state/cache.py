@@ -6,8 +6,6 @@ import app.state
 from app.achievements import registry
 from app.models.achievement import Achievement
 
-logger = logging.getLogger(__name__)
-
 ACHIEVEMENTS: list[Achievement] = []
 
 
@@ -31,7 +29,7 @@ async def init_cache() -> None:
         if registered_achievement is None:
             # Skip achievements not yet implemented in decorator system
             # (e.g., new achievements added to DB but not yet coded)
-            logger.warning(
+            logging.warning(
                 "Achievement in database not found in registry",
                 extra={
                     "achievement_id": db_achievement["id"],
