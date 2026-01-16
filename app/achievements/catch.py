@@ -118,3 +118,8 @@ def fruits_hits_200000(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="fruits-hits-2000000")
 def fruits_hits_2000000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 2_000_000 <= stats.total_hits and mode_vn == Mode.CATCH
+
+
+@registry.achievement(file="fruits-hits-20000000")
+def fruits_hits_20000000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 20_000_000 <= stats.total_hits and mode_vn == Mode.CATCH

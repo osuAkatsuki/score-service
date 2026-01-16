@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from app.achievements import catch
-from app.achievements import hit_count_tier4
 from app.achievements import hush_hush
 from app.achievements import mania
 from app.achievements import mod_introductions
@@ -21,7 +20,6 @@ registry.include(taiko.registry)
 registry.include(catch.registry)
 registry.include(mania.registry)
 registry.include(mod_introductions.registry)
-registry.include(hit_count_tier4.registry)
 registry.include(rank_milestones.registry)
 registry.include(hush_hush.registry)
 

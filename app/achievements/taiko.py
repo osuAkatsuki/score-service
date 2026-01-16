@@ -118,3 +118,8 @@ def hits_300000(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="taiko-hits-3000000")
 def hits_3000000(score: Score, mode_vn: int, stats: Stats) -> bool:
     return 3_000_000 <= stats.total_hits and mode_vn == Mode.TAIKO
+
+
+@registry.achievement(file="taiko-hits-30000000")
+def hits_30000000(score: Score, mode_vn: int, stats: Stats) -> bool:
+    return 30_000_000 <= stats.total_hits and mode_vn == Mode.TAIKO
