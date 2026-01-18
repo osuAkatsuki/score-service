@@ -35,7 +35,11 @@ class Mode(IntEnum):
     STD_AP = 8
 
     def __repr__(self) -> str:
-        return mode_str[self.value]
+        result = mode_str[self.value]
+        # Index 7 is historical autopilot mode (unused since April 21, 2024)
+        if result is None:
+            return "osu!ap(historical)"
+        return result
 
     @cached_property
     def as_vn(self) -> int:
