@@ -585,6 +585,19 @@ async def submit_score(
             stats,
         )
 
+        # log achievement unlocks
+        for achievement in new_achievements:
+            logging.info(
+                f"Achievement unlocked: {achievement.name}",
+                extra={
+                    "user_id": score.user_id,
+                    "achievement_id": achievement.id,
+                    "achievement_file": achievement.file,
+                    "achievement_name": achievement.name,
+                    "mode": score.mode.value,
+                },
+            )
+
         # fire amplitude events for each
         for achievement in new_achievements:
             if config.AMPLITUDE_API_KEY:
