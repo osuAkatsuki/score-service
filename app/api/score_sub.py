@@ -13,21 +13,11 @@ from typing import NamedTuple
 from typing import TypeVar
 
 import aio_pika
-import orjson
-from fastapi import File
-from fastapi import Form
-from fastapi import Header
-from fastapi import Request
-from fastapi import Response
-from fastapi.datastructures import FormData
-from py3rijndael import Pkcs7Padding
-from py3rijndael import RijndaelCbc
-from starlette.datastructures import UploadFile as StarletteUploadFile
-
 import app.repositories.leaderboards
 import app.state
 import app.usecases
 import config
+import orjson
 from app import job_scheduling
 from app.adapters import amplitude
 from app.adapters import bancho_service
@@ -44,6 +34,15 @@ from app.usecases import multiplayer
 from app.usecases.user import restrict_user
 from app.utils.score_utils import calculate_accuracy
 from app.utils.score_utils import calculate_grade
+from fastapi import File
+from fastapi import Form
+from fastapi import Header
+from fastapi import Request
+from fastapi import Response
+from fastapi.datastructures import FormData
+from py3rijndael import Pkcs7Padding
+from py3rijndael import RijndaelCbc
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 
 class ScoreData(NamedTuple):
@@ -292,6 +291,8 @@ async def submit_score(
             score.to_dict(),
         )
 
+    # Prepare AMQP event data for passed scores (will publish later after all validations)
+    submission_request = None
     if score.passed:
         submission_request = dataclasses.asdict(
             ScoreSubmissionRequest(
@@ -313,21 +314,6 @@ async def submit_score(
                 relax=score.mode.relax_int,
             ),
         )
-
-        # send request to rmq
-        if app.state.services.amqp_channel is not None:
-            for routing_key in config.SCORE_SUBMISSION_ROUTING_KEYS:
-                try:
-                    await app.state.services.amqp_channel.default_exchange.publish(
-                        aio_pika.Message(body=orjson.dumps(submission_request)),
-                        routing_key=routing_key,
-                    )
-                except Exception:
-                    # TODO: setup a deadletter queue for failed messages
-                    logging.exception(
-                        "Failed to submit score submission to RMQ listener",
-                        extra={"routing_key": routing_key, "score_id": score.id},
-                    )
 
     # update most played
     await app.state.services.database.execute(
@@ -654,5 +640,20 @@ async def submit_score(
             "time_elapsed": end - start,
         },
     )
+
+    # Publish AMQP event after all validations and processing complete
+    # Only publish for passed scores that successfully completed submission
+    if submission_request is not None and app.state.services.amqp_channel is not None:
+        for routing_key in config.SCORE_SUBMISSION_ROUTING_KEYS:
+            try:
+                await app.state.services.amqp_channel.default_exchange.publish(
+                    aio_pika.Message(body=orjson.dumps(submission_request)),
+                    routing_key=routing_key,
+                )
+            except Exception:
+                logging.exception(
+                    "Failed to submit score submission to RMQ listener",
+                    extra={"routing_key": routing_key, "score_id": score.id},
+                )
 
     return Response("|".join(submission_charts).encode())
