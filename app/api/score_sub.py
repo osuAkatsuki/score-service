@@ -585,7 +585,6 @@ async def submit_score(
             stats,
         )
 
-        # log achievement unlocks
         for achievement in new_achievements:
             logging.info(
                 f"Achievement unlocked: {achievement.name}",
@@ -598,8 +597,7 @@ async def submit_score(
                 },
             )
 
-        # fire amplitude events for each
-        for achievement in new_achievements:
+            # fire amplitude events for each
             if config.AMPLITUDE_API_KEY:
                 job_scheduling.schedule_job(
                     amplitude.track(
