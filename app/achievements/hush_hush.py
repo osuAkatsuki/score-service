@@ -127,4 +127,11 @@ def jack_of_all_trades(score: Score, mode_vn: int, stats: Stats) -> bool:
 @registry.achievement(file="mania-secret-twin")
 def twin_perspectives(score: Score, mode_vn: int, stats: Stats) -> bool:
     """Pass any ranked mania map with 100 combo or more"""
-    return score.passed and score.max_combo >= 100 and mode_vn == Mode.MANIA
+    # TODO: Requires beatmap ranked status check (RANKED or APPROVED only, not LOVED/QUALIFIED)
+    # unlock_achievements() doesn't receive Beatmap object, only Score and Stats
+    # Current call site checks beatmap.has_leaderboard which includes LOVED/QUALIFIED
+    # Need to either:
+    #   1. Add Beatmap parameter to unlock_achievements (breaking change to all achievements)
+    #   2. Add ranked_status field to Score object
+    #   3. Filter at call site before checking achievements
+    return False
