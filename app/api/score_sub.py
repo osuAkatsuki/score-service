@@ -13,21 +13,11 @@ from typing import NamedTuple
 from typing import TypeVar
 
 import aio_pika
-import orjson
-from fastapi import File
-from fastapi import Form
-from fastapi import Header
-from fastapi import Request
-from fastapi import Response
-from fastapi.datastructures import FormData
-from py3rijndael import Pkcs7Padding
-from py3rijndael import RijndaelCbc
-from starlette.datastructures import UploadFile as StarletteUploadFile
-
 import app.repositories.leaderboards
 import app.state
 import app.usecases
 import config
+import orjson
 from app import job_scheduling
 from app.adapters import amplitude
 from app.adapters import bancho_service
@@ -44,6 +34,15 @@ from app.usecases import multiplayer
 from app.usecases.user import restrict_user
 from app.utils.score_utils import calculate_accuracy
 from app.utils.score_utils import calculate_grade
+from fastapi import File
+from fastapi import Form
+from fastapi import Header
+from fastapi import Request
+from fastapi import Response
+from fastapi.datastructures import FormData
+from py3rijndael import Pkcs7Padding
+from py3rijndael import RijndaelCbc
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 
 class ScoreData(NamedTuple):
