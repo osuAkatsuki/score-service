@@ -8,18 +8,17 @@ from datetime import datetime
 from datetime import timezone
 from typing import Any
 
-import orjson
-from fastapi import HTTPException
-
 import app.state.services
 import app.usecases.discord
 import app.usecases.password
 import app.usecases.privileges
 import app.usecases.score
 import config
+import orjson
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.user import User
+from fastapi import HTTPException
 
 
 def make_safe_username(username: str) -> str:
@@ -228,7 +227,7 @@ async def fetch_achievements(user_id: int, mode: Mode) -> list[int]:
 
 async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> None:
     await app.state.services.database.execute(
-        "INSERT INTO users_achievements (achievement_id, user_id, mode, created_at) "
+        "INSERT IGNORE INTO users_achievements (achievement_id, user_id, mode, created_at) "
         "VALUES (:achievement_id, :user_id, :mode, :timestamp)",
         {
             "achievement_id": achievement_id,
