@@ -292,6 +292,8 @@ async def submit_score(
             score.to_dict(),
         )
 
+    # Prepare AMQP event data for passed scores (will publish later after all validations)
+    submission_request = None
     if score.passed:
         submission_request = dataclasses.asdict(
             ScoreSubmissionRequest(
@@ -313,21 +315,6 @@ async def submit_score(
                 relax=score.mode.relax_int,
             ),
         )
-
-        # send request to rmq
-        if app.state.services.amqp_channel is not None:
-            for routing_key in config.SCORE_SUBMISSION_ROUTING_KEYS:
-                try:
-                    await app.state.services.amqp_channel.default_exchange.publish(
-                        aio_pika.Message(body=orjson.dumps(submission_request)),
-                        routing_key=routing_key,
-                    )
-                except Exception:
-                    # TODO: setup a deadletter queue for failed messages
-                    logging.exception(
-                        "Failed to submit score submission to RMQ listener",
-                        extra={"routing_key": routing_key, "score_id": score.id},
-                    )
 
     # update most played
     await app.state.services.database.execute(
@@ -654,5 +641,20 @@ async def submit_score(
             "time_elapsed": end - start,
         },
     )
+
+    # Publish AMQP event after all validations and processing complete
+    # Only publish for passed scores that successfully completed submission
+    if submission_request is not None and app.state.services.amqp_channel is not None:
+        for routing_key in config.SCORE_SUBMISSION_ROUTING_KEYS:
+            try:
+                await app.state.services.amqp_channel.default_exchange.publish(
+                    aio_pika.Message(body=orjson.dumps(submission_request)),
+                    routing_key=routing_key,
+                )
+            except Exception:
+                logging.exception(
+                    "Failed to submit score submission to RMQ listener",
+                    extra={"routing_key": routing_key, "score_id": score.id},
+                )
 
     return Response("|".join(submission_charts).encode())
