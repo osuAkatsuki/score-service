@@ -221,6 +221,14 @@ async def submit_score(
             "(score submit gate)",
         )
 
+    if score.mods.incompatible_with_mode(score.mode.as_vn):
+        await app.usecases.user.restrict_user(
+            user,
+            "The user attempted to submit a score with the mod combination "
+            f"+{score.mods!r} on {score.mode!r}, which contains mode-incompatible mods. "
+            "(score submit gate)",
+        )
+
     async with RedisLock(f"score_submission:{score.online_checksum}"):
         score_exists = (
             await app.state.services.database.fetch_val(
