@@ -228,7 +228,7 @@ async def fetch_achievements(user_id: int, mode: Mode) -> list[int]:
 
 async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> None:
     await app.state.services.database.execute(
-        "INSERT INTO users_achievements (achievement_id, user_id, mode, created_at) "
+        "INSERT IGNORE INTO users_achievements (achievement_id, user_id, mode, created_at) "
         "VALUES (:achievement_id, :user_id, :mode, :timestamp)",
         {
             "achievement_id": achievement_id,

@@ -17,7 +17,7 @@ async def init_cache() -> None:
     """
     # Load achievement metadata from database to verify all are registered
     db_achievements = await app.state.services.database.fetch_all(
-        "SELECT id, file, name, `desc` FROM less_achievements",
+        "SELECT id, file, name, `desc`, mode FROM less_achievements",
     )
 
     # Build achievements from registry
@@ -47,6 +47,7 @@ async def init_cache() -> None:
                 file=achievement_file,
                 name=db_achievement["name"],
                 desc=db_achievement["desc"],
+                mode=db_achievement["mode"],
                 cond=registered_achievement.condition_func,
             ),
         )

@@ -22,6 +22,10 @@ async def unlock_achievements(score: Score, stats: Stats) -> list[Achievement]:
         score.mode,
     )
     for achievement in app.state.cache.ACHIEVEMENTS:
+        # Skip achievements that don't match this mode (only check relevant achievements)
+        if achievement.mode is not None and achievement.mode != score.mode.as_vn:
+            continue
+
         if achievement.id in user_achievements:
             continue
 

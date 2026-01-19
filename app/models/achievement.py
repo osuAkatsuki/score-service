@@ -15,6 +15,7 @@ class Achievement:
     file: str
     name: str
     desc: str
+    mode: int | None  # 0=std, 1=taiko, 2=catch, 3=mania, None=universal
     cond: Callable[[Score, int, Stats], bool]
 
     @property
