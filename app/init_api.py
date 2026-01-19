@@ -46,7 +46,7 @@ def init_events(asgi_app: FastAPI) -> None:
             ssl=config.REDIS_USE_SSL,
         )
         await app.state.services.redis.initialize()  # type: ignore[unused-awaitable]
-        await app.state.services.redis.ping()
+        await app.state.services.redis.ping()  # type: ignore[misc]
 
         app.state.services.http_client = httpx.AsyncClient()
 
