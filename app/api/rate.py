@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 import logging
-import time
 
 from fastapi import Depends
 from fastapi import Query
 
 import app.state
 import app.usecases
-import config
-from app import job_scheduling
-from app.adapters import amplitude
 from app.models.beatmap import Beatmap
 from app.models.user import User
 from app.usecases.user import authenticate_user
@@ -63,20 +59,6 @@ async def rate_map(
     if user_rating:
         new_rating = await add_rating(user.id, map_md5, user_rating)
         beatmap.rating = new_rating
-
-        if config.AMPLITUDE_API_KEY:
-            job_scheduling.schedule_job(
-                amplitude.track(
-                    event_name="rated_beatmap",
-                    user_id=str(user.id),
-                    device_id=None,
-                    event_properties={
-                        "user_rating": user_rating,
-                        "beatmap": amplitude.format_beatmap(beatmap),
-                    },
-                    time=int(time.time() * 1000),
-                ),
-            )
 
         logging.info(
             f"{user} has rated {beatmap.song_name} with rating {user_rating} (new average: {new_rating:.2f})",

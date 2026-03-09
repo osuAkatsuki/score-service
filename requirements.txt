@@ -1,6 +1,5 @@
 aio-pika
 aiobotocore
-amplitude-experiment
 bcrypt
 cryptography
 databases[asyncmy]
