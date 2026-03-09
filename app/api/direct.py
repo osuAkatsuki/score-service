@@ -15,8 +15,6 @@ from fastapi.responses import RedirectResponse
 import app.state
 import app.usecases
 import config
-from app import job_scheduling
-from app.adapters import amplitude
 from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user
@@ -112,23 +110,6 @@ async def osu_direct(
             ),
         )
 
-    if config.AMPLITUDE_API_KEY:
-        job_scheduling.schedule_job(
-            amplitude.track(
-                event_name="osudirect_search",
-                user_id=str(user.id),
-                device_id=None,
-                event_properties={
-                    "query": query,
-                    "page_num": page,
-                    "game_mode": (
-                        amplitude.format_mode(mode) if mode != -1 else "All modes"
-                    ),
-                    "ranked_status": ranked_status,
-                },
-            ),
-        )
-
     return Response("\n".join(ret).encode())
 
 
@@ -170,19 +151,6 @@ async def beatmap_card(
         return Response(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     json_data = response.json()
-
-    if config.AMPLITUDE_API_KEY:
-        job_scheduling.schedule_job(
-            amplitude.track(
-                event_name="osudirect_card_view",
-                user_id=str(user.id),
-                device_id=None,
-                event_properties={
-                    "beatmapset_id": map_set_id,
-                    "beatmap_id": map_id,
-                },
-            ),
-        )
 
     return Response(
         (

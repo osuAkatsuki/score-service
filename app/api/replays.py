@@ -9,9 +9,6 @@ from fastapi import Response
 
 import app.state
 import app.usecases
-import config
-from app import job_scheduling
-from app.adapters import amplitude
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.models.user import User
@@ -41,20 +38,6 @@ async def get_replay(
 
     if db_score["userid"] != user.id:
         await app.usecases.user.increment_replays_watched(db_score["userid"], mode)
-
-    if config.AMPLITUDE_API_KEY:
-        job_scheduling.schedule_job(
-            amplitude.track(
-                event_name="watched_replay",
-                user_id=str(user.id),
-                device_id=None,
-                event_properties={
-                    # TODO: could fetch the whole score here
-                    "score_id": score_id,
-                    "game_mode": amplitude.format_mode(mode),
-                },
-            ),
-        )
 
     logging.debug(f"Served replay ID {score_id}")
     return Response(content=replay_bytes)

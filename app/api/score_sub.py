@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-import hashlib
 import logging
 import time
 from base64 import b64decode
@@ -28,8 +27,6 @@ import app.repositories.leaderboards
 import app.state
 import app.usecases
 import config
-from app import job_scheduling
-from app.adapters import amplitude
 from app.adapters import bancho_service
 from app.constants.mode import Mode
 from app.constants.mods import Mods
@@ -189,9 +186,10 @@ async def submit_score(
         logging.warning(
             "Score submission denied due to unrankable mods",
             extra={
-                "beatmap": amplitude.format_beatmap(beatmap),
-                "score": amplitude.format_score(score),
-                "user": amplitude.format_user(user),
+                "beatmap_md5": beatmap.md5,
+                "beatmap_id": beatmap.id,
+                "user_id": user.id,
+                "mods": repr(score.mods),
             },
         )
         return Response(b"error: no")
@@ -505,34 +503,6 @@ async def submit_score(
             team=multiplayer_details.team,
         )
 
-    # NOTE: osu! login double hashes with md5, while score submission
-    # only hashes it a single time. we perform the second hashing here.
-    uninstall_id, disk_id = unique_ids.split("|", maxsplit=1)
-    login_disk_id = hashlib.md5(disk_id.encode()).hexdigest()
-    if login_disk_id == "dcfcd07e645d245babe887e5e2daa016":
-        # NOTE: this is the result of `md5(md5("0"))`.
-        # The osu! client will send this sometimes because WMI
-        # may return a "0" as the disk serial number if a hardware
-        # manufacturer has not set one.
-        # (disk signature is optional but serial number is required)
-        device_id = None
-    else:
-        device_id = hashlib.sha1(login_disk_id.encode()).hexdigest()
-
-    if config.AMPLITUDE_API_KEY:
-        job_scheduling.schedule_job(
-            amplitude.track(
-                event_name="score_submission",
-                user_id=str(user.id),
-                device_id=device_id,
-                event_properties={
-                    "beatmap": amplitude.format_beatmap(beatmap),
-                    "score": amplitude.format_score(score),
-                    "user": amplitude.format_user(user),
-                },
-            ),
-        )
-
     if previous_best is not None:
         beatmap_ranking_chart = (
             chart_entry("rank", previous_best["score_rank"], score.rank),
@@ -583,21 +553,6 @@ async def submit_score(
                     "mode": score.mode.value,
                 },
             )
-
-            # fire amplitude events for each
-            if config.AMPLITUDE_API_KEY:
-                job_scheduling.schedule_job(
-                    amplitude.track(
-                        event_name="achievement_unlocked",
-                        user_id=str(score.user_id),
-                        device_id=device_id,
-                        event_properties={
-                            "achievement": amplitude.format_achievement(achievement),
-                            "score": amplitude.format_score(score),
-                        },
-                        time=int(time.time() * 1000),
-                    ),
-                )
 
     achievements_str = "/".join(ach.full_name for ach in new_achievements)
 

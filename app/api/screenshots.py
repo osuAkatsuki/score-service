@@ -13,9 +13,6 @@ from fastapi import Response
 from fastapi import UploadFile
 
 import app.state
-import config
-from app import job_scheduling
-from app.adapters import amplitude
 from app.adapters import s3
 from app.models.user import User
 from app.usecases.user import authenticate_user
@@ -91,20 +88,6 @@ async def upload_screenshot(
 
     # TODO: background with retry policy
     await s3.upload(content, file_name, "screenshots")
-
-    if config.AMPLITUDE_API_KEY:
-        job_scheduling.schedule_job(
-            amplitude.track(
-                event_name="upload_screenshot",
-                user_id=str(user.id),
-                device_id=None,
-                event_properties={
-                    "file_name": file_name,
-                    "file_size": len(content),
-                    "url": f"https://osu.akatsuki.pw/ss/{file_name}",
-                },
-            ),
-        )
 
     logging.info(f"{user} has uploaded screenshot {file_name}")
     return Response(file_name.encode())
