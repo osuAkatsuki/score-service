@@ -162,10 +162,11 @@ async def submit_score(
 
     try:
         decrypted = DecryptedScoreData.from_tokens(score_tokens)
-    except (ValueError, ValidationError) as exc:
+    except (ValueError, ValidationError):
         logging.warning(
             "Invalid decrypted score data",
-            extra={"error": str(exc)},
+            extra={"score_tokens": score_tokens},
+            exc_info=True,
         )
         return Response(b"error: no")
 
