@@ -8,3 +8,13 @@ run:
 
 run-bg:
 	docker run --network=host --env-file=.env -d score-service:latest
+
+utest:
+	pytest
+
+itest:
+	docker compose -f docker-compose.test.yml up -d --wait mysql redis
+	docker compose -f docker-compose.test.yml run --rm migrations
+	pytest -m integration tests/integration
+
+test: utest itest

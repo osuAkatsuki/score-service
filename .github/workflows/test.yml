@@ -7,10 +7,12 @@ on:
       - "**.py"
       - "pytest.ini"
       - "requirements*.txt"
+      - "docker-compose.test.yml"
+      - ".github/workflows/test.yml"
   pull_request:
 
 jobs:
-  pytest:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,3 +26,25 @@ jobs:
         run: pip install -rrequirements{,-dev}.txt
       - name: Run pytest
         run: pytest
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: pip install -rrequirements{,-dev}.txt
+      - name: Start MySQL + Redis
+        run: docker compose -f docker-compose.test.yml up -d --wait mysql redis
+      - name: Run schema migrations
+        run: docker compose -f docker-compose.test.yml run --rm migrations
+      - name: Run integration tests
+        run: pytest -m integration tests/integration
+      - name: Dump compose logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.test.yml logs
