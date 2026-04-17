@@ -1,6 +1,7 @@
 mypy
 pytest
 pytest-asyncio
+respx
 types-aiobotocore[s3]
 types-jmespath
 types-pyyaml
