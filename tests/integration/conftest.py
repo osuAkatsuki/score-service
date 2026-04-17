@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from collections.abc import Iterator
+from typing import Any
 
+import httpx
 import pytest
 import respx
 from fastapi.testclient import TestClient
@@ -10,6 +12,10 @@ from fastapi.testclient import TestClient
 import config
 from app.state.services import Database
 from app.state.services import dsn
+from tests.integration.helpers import seed_beatmap
+from tests.integration.helpers import seed_pp_limits
+from tests.integration.helpers import seed_user
+from tests.integration.helpers import seed_user_stats
 
 
 @pytest.fixture(scope="session")
@@ -93,3 +99,86 @@ def respx_mock() -> Iterator[respx.MockRouter]:
     # care about; unreferenced stubs don't fail the test.
     with respx.mock(assert_all_called=False) as mock:
         yield mock
+
+
+@pytest.fixture(autouse=True)
+async def pp_limits(db: Database) -> None:
+    # Production has pp_limits seeded; tests need it too or every score
+    # submission > 0 pp trips the pp-cap restrict guard.
+    await seed_pp_limits(db)
+
+
+@pytest.fixture
+async def user(db: Database) -> dict[str, Any]:
+    seeded = await seed_user(db)
+    await seed_user_stats(db, user_id=seeded["user_id"])
+    return seeded
+
+
+@pytest.fixture
+async def beatmap(db: Database) -> dict[str, Any]:
+    return await seed_beatmap(db)
+
+
+@pytest.fixture
+def external_service_stubs(
+    respx_mock: respx.MockRouter,
+    beatmap: dict[str, Any],
+) -> dict[str, respx.Route]:
+    """Default stubs for the three services submit_score calls into.
+
+    Tests use the returned dict to assert that a given route was or was not
+    hit (e.g. bancho fokabot-message for first-place announces / restricts).
+    """
+    beatmaps_route = respx_mock.get(
+        "http://beatmaps.test/api/akatsuki/v1/beatmaps/lookup",
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "beatmap_id": beatmap["beatmap_id"],
+                "beatmapset_id": beatmap["beatmap_id"] + 1,
+                "beatmap_md5": beatmap["beatmap_md5"],
+                "song_name": "Test Artist - Test Song [Test Diff]",
+                "file_name": "test.osu",
+                "ar": 9.0,
+                "od": 9.0,
+                "mode": 0,
+                "max_combo": 1000,
+                "hit_length": 120,
+                "bpm": 180,
+                "ranked": 2,
+                "latest_update": 0,
+                "ranked_status_freezed": 0,
+                "playcount": 0,
+                "passcount": 0,
+                "rating": 10.0,
+                "rankedby": None,
+                "bancho_ranked_status": None,
+                "count_circles": 500,
+                "count_sliders": 500,
+                "count_spinners": 0,
+            },
+        ),
+    )
+    performance_route = respx_mock.post(
+        "http://performance.test/api/v1/calculate",
+    ).mock(
+        return_value=httpx.Response(200, json=[{"pp": 123.4, "stars": 6.5}]),
+    )
+    match_details_route = respx_mock.get(
+        "http://bancho.test/api/v1/playerMatchDetails",
+    ).mock(
+        return_value=httpx.Response(200, json={"message": "no match"}),
+    )
+    fokabot_route = respx_mock.get(
+        "http://bancho.test/api/v1/fokabotMessage",
+    ).mock(
+        return_value=httpx.Response(200),
+    )
+    return {
+        "beatmaps": beatmaps_route,
+        "performance": performance_route,
+        "match_details": match_details_route,
+        "fokabot": fokabot_route,
+    }
