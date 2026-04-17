@@ -7,6 +7,7 @@ import pytest
 import respx
 from fastapi.testclient import TestClient
 
+import config
 from app.state.services import Database
 from app.state.services import dsn
 
@@ -30,8 +31,6 @@ async def db(client: TestClient) -> AsyncIterator[Database]:
     # Uses the same app.state.services.Database wrapper as production so tests
     # exercise the read/write-split path the real code uses, with MySQL
     # autocommit making writes visible across connections immediately.
-    import config
-
     database = Database(
         read_dsn=dsn(
             dialect="mysql",
@@ -59,24 +58,31 @@ async def db(client: TestClient) -> AsyncIterator[Database]:
         await database.disconnect()
 
 
-# Tables mutated during score submission. Truncated between tests so each
-# test starts from a clean slate without having to manage its own undo.
-_MUTATED_TABLES: tuple[str, ...] = (
-    "scores",
-    "scores_first",
-    "users",
-    "user_stats",
-    "beatmaps",
-    "user_beatmaps",
-    "users_achievements",
+# Tables excluded from per-test cleanup. The schema_migrations table is
+# populated by go-migrate when the container brings up the DB; the rest
+# are DB-local infra, not app data.
+_CLEAN_DB_EXCLUDED_TABLES: frozenset[str] = frozenset(
+    {"akatsuki_schema_migrations"},
 )
 
 
 @pytest.fixture(autouse=True)
 async def clean_db(db: Database) -> AsyncIterator[None]:
+    rows = await db.fetch_all(
+        """
+        SELECT table_name FROM information_schema.tables
+         WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
+        """,
+    )
+    tables = [
+        row["TABLE_NAME"]
+        for row in rows
+        if row["TABLE_NAME"] not in _CLEAN_DB_EXCLUDED_TABLES
+    ]
+
     await db.execute("SET FOREIGN_KEY_CHECKS = 0")
-    for table in _MUTATED_TABLES:
-        await db.execute(f"TRUNCATE TABLE {table}")
+    for table in tables:
+        await db.execute(f"TRUNCATE TABLE `{table}`")
     await db.execute("SET FOREIGN_KEY_CHECKS = 1")
     yield
 
