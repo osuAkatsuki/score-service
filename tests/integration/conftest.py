@@ -5,8 +5,9 @@ from collections.abc import Iterator
 
 import pytest
 import respx
-from databases import Database
 from fastapi.testclient import TestClient
+
+from app.state.services import Database
 
 
 @pytest.fixture(scope="session")
@@ -22,19 +23,23 @@ def client() -> Iterator[TestClient]:
 
 @pytest.fixture
 async def db(client: TestClient) -> AsyncIterator[Database]:
-    # A *separate* DB connection, scoped to the test function. The app's
-    # own connection pool (app.state.services.database) lives on the
-    # TestClient's event loop and can't be shared across pytest-asyncio's
-    # per-test loops. This connection belongs to the test and is used for
-    # seeding + assertions; MySQL autocommit makes writes visible across
-    # connections immediately.
+    # A *separate* Database instance, scoped to the test function. The app's
+    # own pool (app.state.services.database) lives on the TestClient's event
+    # loop and can't be shared across pytest-asyncio's per-test loops.
+    # Uses the same app.state.services.Database wrapper as production so tests
+    # exercise the read/write-split path the real code uses, with MySQL
+    # autocommit making writes visible across connections immediately.
     import config
 
-    dsn = (
+    read_dsn = (
+        f"mysql+asyncmy://{config.READ_DB_USER}:{config.READ_DB_PASS}"
+        f"@{config.READ_DB_HOST}:{config.READ_DB_PORT}/{config.READ_DB_NAME}"
+    )
+    write_dsn = (
         f"mysql+asyncmy://{config.WRITE_DB_USER}:{config.WRITE_DB_PASS}"
         f"@{config.WRITE_DB_HOST}:{config.WRITE_DB_PORT}/{config.WRITE_DB_NAME}"
     )
-    database = Database(dsn)
+    database = Database(read_dsn=read_dsn, write_dsn=write_dsn)
     await database.connect()
     try:
         yield database

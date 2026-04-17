@@ -5,9 +5,9 @@ from base64 import b64encode
 import httpx
 import pytest
 import respx
-from databases import Database
 from fastapi.testclient import TestClient
 
+from app.state.services import Database
 from tests.integration.helpers import DUMMY_REPLAY_BYTES
 from tests.integration.helpers import encrypt_score_payload
 from tests.integration.helpers import seed_beatmap
