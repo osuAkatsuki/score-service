@@ -21,6 +21,7 @@ from fastapi import Response
 from fastapi.datastructures import FormData
 from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
+from pydantic import ValidationError
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
 import app.repositories.leaderboards
@@ -34,6 +35,7 @@ from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.achievement import Achievement
 from app.models.beatmap import Beatmap
+from app.models.decrypted_score_data import DecryptedScoreData
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.redis_lock import RedisLock
@@ -151,22 +153,35 @@ async def submit_score(
         return Response(b"error: no")
 
     score_data_b64, replay_file = score_params
-    score_data, _ = decrypt_score_data(
+    score_tokens, _ = decrypt_score_data(
         score_data_b64,
         client_hash_b64,
         iv_b64,
         osu_version,
     )
 
-    beatmap_md5 = score_data[0]
-    if not (beatmap := await app.usecases.akatsuki_beatmaps.fetch_by_md5(beatmap_md5)):
+    try:
+        decrypted = DecryptedScoreData.from_tokens(score_tokens)
+    except (ValueError, ValidationError) as exc:
+        logging.warning(
+            "Invalid decrypted score data",
+            extra={"error": str(exc)},
+        )
+        return Response(b"error: no")
+
+    if not (
+        beatmap := await app.usecases.akatsuki_beatmaps.fetch_by_md5(
+            decrypted.beatmap_md5,
+        )
+    ):
         return Response(b"error: beatmap")
 
-    username = score_data[1].rstrip()
-    if not (user := await app.usecases.user.auth_user(username, password_md5)):
+    if not (
+        user := await app.usecases.user.auth_user(decrypted.username, password_md5)
+    ):
         return Response(b"")  # empty resp tells osu to retry
 
-    score = Score.from_submission(score_data[2:], beatmap_md5, user)
+    score = Score.from_decrypted(decrypted, user)
     previous_best = await app.usecases.leaderboards.fetch_personal_best(
         beatmap,
         score.mode,
