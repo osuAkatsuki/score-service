@@ -22,8 +22,8 @@ from . import score_sub
 from . import screenshots
 from . import seasonals
 from app.models.user import User
-from app.state.container import AppContainer
-from app.state.container import get_container
+from app.state.context import AppContext
+from app.state.context import get_context
 from app.usecases.user import authenticate_user
 
 router = APIRouter(default_response_class=Response)
@@ -31,10 +31,10 @@ router = APIRouter(default_response_class=Response)
 
 @router.get("/_health")
 async def healthcheck(
-    container: AppContainer = Depends(get_container),
+    context: AppContext = Depends(get_context),
 ) -> Response:
-    await container.redis.ping()  # type: ignore[misc]
-    await container.database.execute("SELECT 1")
+    await context.redis.ping()  # type: ignore[misc]
+    await context.database.execute("SELECT 1")
     return ORJSONResponse({"status": "ok"})
 
 

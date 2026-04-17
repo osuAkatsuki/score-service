@@ -1,11 +1,11 @@
-"""Composition-root container holding every shared service.
+"""Composition-root context holding every shared service.
 
 This is the beginning of the migration away from module-level globals on
 :mod:`app.state.services`. New code should prefer receiving an
-:class:`AppContainer` via ``Depends(get_container)`` instead of reaching
+:class:`AppContext` via ``Depends(get_context)`` instead of reaching
 into ``app.state.services.X`` directly. The module globals remain in
 place for backwards compatibility and reference the same object instances
-as the container fields.
+as the context fields.
 """
 from __future__ import annotations
 
@@ -24,8 +24,8 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class AppContainer:
-    """Process-wide service container. One instance per running app."""
+class AppContext:
+    """Process-wide service context. One instance per running app."""
 
     database: Database
     redis: aioredis.Redis
@@ -35,7 +35,7 @@ class AppContainer:
     s3_client: S3Client | None
 
 
-def get_container(request: Request) -> AppContainer:
-    """Return the :class:`AppContainer` attached to the running app."""
-    container: AppContainer = request.app.state.container
-    return container
+def get_context(request: Request) -> AppContext:
+    """Return the :class:`AppContext` attached to the running app."""
+    context: AppContext = request.app.state.context
+    return context

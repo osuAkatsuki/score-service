@@ -4,14 +4,14 @@ from fastapi import Depends
 from fastapi import Response
 from fastapi.responses import ORJSONResponse
 
-from app.state.container import AppContainer
-from app.state.container import get_container
+from app.state.context import AppContext
+from app.state.context import get_context
 
 
 async def get_seasonals(
-    container: AppContainer = Depends(get_container),
+    context: AppContext = Depends(get_context),
 ) -> Response:
-    db_seasonals = await container.database.fetch_all(
+    db_seasonals = await context.database.fetch_all(
         "SELECT url FROM seasonal_bg WHERE enabled = 1",
     )
 
