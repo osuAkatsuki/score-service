@@ -8,6 +8,7 @@ import respx
 from fastapi.testclient import TestClient
 
 from app.state.services import Database
+from app.state.services import dsn
 
 
 @pytest.fixture(scope="session")
@@ -31,15 +32,26 @@ async def db(client: TestClient) -> AsyncIterator[Database]:
     # autocommit making writes visible across connections immediately.
     import config
 
-    read_dsn = (
-        f"mysql+asyncmy://{config.READ_DB_USER}:{config.READ_DB_PASS}"
-        f"@{config.READ_DB_HOST}:{config.READ_DB_PORT}/{config.READ_DB_NAME}"
+    database = Database(
+        read_dsn=dsn(
+            dialect="mysql",
+            driver="asyncmy",
+            username=config.READ_DB_USER,
+            password=config.READ_DB_PASS,
+            host=config.READ_DB_HOST,
+            port=config.READ_DB_PORT,
+            database=config.READ_DB_NAME,
+        ),
+        write_dsn=dsn(
+            dialect="mysql",
+            driver="asyncmy",
+            username=config.WRITE_DB_USER,
+            password=config.WRITE_DB_PASS,
+            host=config.WRITE_DB_HOST,
+            port=config.WRITE_DB_PORT,
+            database=config.WRITE_DB_NAME,
+        ),
     )
-    write_dsn = (
-        f"mysql+asyncmy://{config.WRITE_DB_USER}:{config.WRITE_DB_PASS}"
-        f"@{config.WRITE_DB_HOST}:{config.WRITE_DB_PORT}/{config.WRITE_DB_NAME}"
-    )
-    database = Database(read_dsn=read_dsn, write_dsn=write_dsn)
     await database.connect()
     try:
         yield database
