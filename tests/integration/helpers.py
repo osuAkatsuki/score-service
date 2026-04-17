@@ -115,19 +115,27 @@ async def seed_pp_limits(
     path. Production seeds real values; tests use a cap big enough that no
     default test submission hits it, unless a test overrides to something
     lower.
+
+    pp_limits.gamemode is an AUTO_INCREMENT column, so inserting literal 0
+    requires ``NO_AUTO_VALUE_ON_ZERO`` in sql_mode. We set it on a single
+    held connection for the duration of the inserts rather than relying on
+    the server default — server sql_mode is an infra concern we don't want
+    tests to assume.
     """
-    for mode in (0, 1, 2, 3):
-        await db.execute(
-            """
-            INSERT INTO pp_limits (
-                gamemode, pp, relax_pp, flashlight_pp,
-                relax_flashlight_pp, autopilot_pp, autopilot_flashlight_pp
-            ) VALUES (
-                :gamemode, :cap, :cap, :cap, :cap, :cap, :cap
+    async with db.write_database.connection() as conn:
+        await conn.execute("SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO'")
+        for mode in (0, 1, 2, 3):
+            await conn.execute(
+                """
+                INSERT INTO pp_limits (
+                    gamemode, pp, relax_pp, flashlight_pp,
+                    relax_flashlight_pp, autopilot_pp, autopilot_flashlight_pp
+                ) VALUES (
+                    :gamemode, :cap, :cap, :cap, :cap, :cap, :cap
+                )
+                """,
+                {"gamemode": mode, "cap": pp_cap},
             )
-            """,
-            {"gamemode": mode, "cap": pp_cap},
-        )
 
 
 async def seed_user_stats(

@@ -1,10 +1,6 @@
 services:
   mysql:
     image: mysql:8.0
-    # Match the sql_mode the production migrations were authored under so
-    # that AUTO_INCREMENT columns (e.g. pp_limits.gamemode) can be inserted
-    # with literal 0.
-    command: ["--sql-mode=NO_AUTO_VALUE_ON_ZERO,STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION"]
     environment:
       MYSQL_ROOT_PASSWORD: testroot
       MYSQL_DATABASE: score_service_test
