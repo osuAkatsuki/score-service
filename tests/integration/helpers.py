@@ -6,10 +6,15 @@ from base64 import b64encode
 from typing import Any
 
 import bcrypt
+import httpx
+from fastapi.testclient import TestClient
 from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
 
 from app.state.services import Database
+
+SUBMIT_SCORE_PATH = "/web/osu-submit-modular-selector.php"
+DEFAULT_OSU_VERSION = "20210103"
 
 
 def hash_password(plaintext: str) -> tuple[str, str]:
@@ -98,6 +103,33 @@ async def seed_user(
     }
 
 
+async def seed_pp_limits(
+    db: Database,
+    *,
+    pp_cap: int = 30_000,
+) -> None:
+    """Populate pp_limits with a high cap for every vanilla game mode.
+
+    Without a row, app.usecases.pp_cap.get_pp_cap returns 0, which makes every
+    non-whitelisted score submission above 0 pp trip the pp-cap restrict
+    path. Production seeds real values; tests use a cap big enough that no
+    default test submission hits it, unless a test overrides to something
+    lower.
+    """
+    for mode in (0, 1, 2, 3):
+        await db.execute(
+            """
+            INSERT INTO pp_limits (
+                gamemode, pp, relax_pp, flashlight_pp,
+                relax_flashlight_pp, autopilot_pp, autopilot_flashlight_pp
+            ) VALUES (
+                :gamemode, :cap, :cap, :cap, :cap, :cap, :cap
+            )
+            """,
+            {"gamemode": mode, "cap": pp_cap},
+        )
+
+
 async def seed_user_stats(
     db: Database,
     *,
@@ -109,6 +141,91 @@ async def seed_user_stats(
     await db.execute(
         "INSERT INTO user_stats (user_id, mode) VALUES (:user_id, :mode)",
         {"user_id": user_id, "mode": mode},
+    )
+
+
+def build_score_tokens(
+    *,
+    beatmap_md5: str,
+    username: str,
+    online_checksum: str = "c" * 32,
+    n300: int = 100,
+    n100: int = 2,
+    n50: int = 1,
+    ngeki: int = 0,
+    nkatu: int = 0,
+    nmiss: int = 0,
+    score: int = 123_456,
+    max_combo: int = 500,
+    full_combo: str = "True",
+    grade: str = "S",
+    mods: int = 0,
+    passed: str = "True",
+    mode: int = 0,
+) -> list[str]:
+    """Build the 16-token score payload in the positional shape the
+    osu! client serializes before encrypting."""
+    return [
+        beatmap_md5,
+        username,
+        online_checksum,
+        str(n300),
+        str(n100),
+        str(n50),
+        str(ngeki),
+        str(nkatu),
+        str(nmiss),
+        str(score),
+        str(max_combo),
+        full_combo,
+        grade,
+        str(mods),
+        passed,
+        str(mode),
+    ]
+
+
+def submit_score_request(
+    client: TestClient,
+    *,
+    password_md5: str,
+    score_tokens: list[str],
+    user_agent: str = "osu!",
+    osu_version: str = DEFAULT_OSU_VERSION,
+    client_hash: str | None = None,
+    replay_bytes: bytes = DUMMY_REPLAY_BYTES,
+) -> httpx.Response:
+    """Encrypt the tokens and POST the submit-modular-selector multipart.
+
+    Mirrors what the osu! client sends: score and client-hash are encrypted
+    with the same IV; the `score` multipart key has two parts — the
+    encrypted score string and the replay file upload.
+    """
+    score_data_b64, iv_b64, client_hash_b64 = encrypt_score_payload(
+        score_tokens=score_tokens,
+        client_hash=client_hash or ":".join(["0" * 32] * 5),
+        osu_version=osu_version,
+    )
+    return client.post(
+        SUBMIT_SCORE_PATH,
+        headers={"user-agent": user_agent},
+        data={
+            "x": "0",
+            "ft": "0",
+            "fs": b64encode(b"visual-settings").decode(),
+            "bmk": score_tokens[0],
+            "sbk": "",
+            "iv": iv_b64.decode(),
+            "c1": "abc-unique-id",
+            "st": "0",
+            "pass": password_md5,
+            "osuver": osu_version,
+            "s": client_hash_b64.decode(),
+        },
+        files=[
+            ("score", (None, score_data_b64, "text/plain")),
+            ("score", ("replay.osr", replay_bytes, "application/octet-stream")),
+        ],
     )
 
 
