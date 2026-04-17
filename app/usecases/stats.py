@@ -73,6 +73,31 @@ async def get_redis_rank(user_id: int, mode: Mode) -> RankInfo:
     return RankInfo(global_rank, country_rank)
 
 
+def adjust_grade_counter(stats: Stats, grade: str, delta: int) -> None:
+    """Increment/decrement the per-grade counter on ``stats``.
+
+    ``delta`` is typically ``+1`` for a new best score or ``-1`` when the
+    previous best is being displaced. Unknown grades are ignored.
+    """
+    match grade:
+        case "XH":
+            stats.xh_count += delta
+        case "X":
+            stats.x_count += delta
+        case "SH":
+            stats.sh_count += delta
+        case "S":
+            stats.s_count += delta
+        case "A":
+            stats.a_count += delta
+        case "B":
+            stats.b_count += delta
+        case "C":
+            stats.c_count += delta
+        case "D":
+            stats.d_count += delta
+
+
 async def full_recalc(stats: Stats, score_pp: float) -> None:
     db_scores = await app.state.services.database.fetch_all(
         f"SELECT s.accuracy, s.pp FROM {stats.mode.scores_table} s "

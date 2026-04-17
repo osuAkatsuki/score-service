@@ -420,22 +420,7 @@ async def submit_score(
                 n50=score.n50,
                 nmiss=score.nmiss,
             )
-            if grade == "XH":
-                stats.xh_count += 1
-            elif grade == "X":
-                stats.x_count += 1
-            elif grade == "SH":
-                stats.sh_count += 1
-            elif grade == "S":
-                stats.s_count += 1
-            elif grade == "A":
-                stats.a_count += 1
-            elif grade == "B":
-                stats.b_count += 1
-            elif grade == "C":
-                stats.c_count += 1
-            elif grade == "D":
-                stats.d_count += 1
+            app.usecases.stats.adjust_grade_counter(stats, grade, +1)
 
             stats.ranked_score += score.score
 
@@ -450,22 +435,11 @@ async def submit_score(
                     n50=previous_best["count_50"],
                     nmiss=previous_best["count_miss"],
                 )
-                if previous_best_grade == "XH":
-                    stats.xh_count -= 1
-                elif previous_best_grade == "X":
-                    stats.x_count -= 1
-                elif previous_best_grade == "SH":
-                    stats.sh_count -= 1
-                elif previous_best_grade == "S":
-                    stats.s_count -= 1
-                elif previous_best_grade == "A":
-                    stats.a_count -= 1
-                elif previous_best_grade == "B":
-                    stats.b_count -= 1
-                elif previous_best_grade == "C":
-                    stats.c_count -= 1
-                elif previous_best_grade == "D":
-                    stats.d_count -= 1
+                app.usecases.stats.adjust_grade_counter(
+                    stats,
+                    previous_best_grade,
+                    -1,
+                )
 
     await app.usecases.stats.save(stats)
 
