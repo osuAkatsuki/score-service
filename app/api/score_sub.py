@@ -21,6 +21,7 @@ from fastapi import Response
 from fastapi.datastructures import FormData
 from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
+from pydantic import ValidationError
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
 import app.repositories.leaderboards
@@ -34,6 +35,7 @@ from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.achievement import Achievement
 from app.models.beatmap import Beatmap
+from app.models.decrypted_score_data import DecryptedScoreData
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.redis_lock import RedisLock
@@ -49,22 +51,27 @@ class ScoreData(NamedTuple):
 
 
 async def parse_form(score_data: FormData) -> ScoreData | None:
-    try:
-        score_parts = score_data.getlist("score")
-        assert len(score_parts) == 2, "Invalid score data"
-
-        score_data_b64 = score_data.getlist("score")[0]
-        assert isinstance(score_data_b64, str), "Invalid score data"
-        replay_file = score_data.getlist("score")[1]
-        assert isinstance(replay_file, StarletteUploadFile), "Invalid replay data"
-    except AssertionError as exc:
-        logging.warning(f"Failed to validate score multipart data: ({exc.args[0]})")
-        return None
-    else:
-        return ScoreData(
-            score_data_b64.encode(),
-            replay_file,
+    score_parts = score_data.getlist("score")
+    if len(score_parts) != 2:
+        logging.warning(
+            "Failed to validate score multipart data: expected 2 score parts",
+            extra={"num_parts": len(score_parts)},
         )
+        return None
+
+    score_data_b64, replay_file = score_parts
+    if not isinstance(score_data_b64, str):
+        logging.warning(
+            "Failed to validate score multipart data: score payload is not a string",
+        )
+        return None
+    if not isinstance(replay_file, StarletteUploadFile):
+        logging.warning(
+            "Failed to validate score multipart data: replay is not an upload file",
+        )
+        return None
+
+    return ScoreData(score_data_b64.encode(), replay_file)
 
 
 class ScoreClientData(NamedTuple):
@@ -146,22 +153,36 @@ async def submit_score(
         return Response(b"error: no")
 
     score_data_b64, replay_file = score_params
-    score_data, _ = decrypt_score_data(
+    score_tokens, _ = decrypt_score_data(
         score_data_b64,
         client_hash_b64,
         iv_b64,
         osu_version,
     )
 
-    beatmap_md5 = score_data[0]
-    if not (beatmap := await app.usecases.akatsuki_beatmaps.fetch_by_md5(beatmap_md5)):
+    try:
+        decrypted = DecryptedScoreData.from_tokens(score_tokens)
+    except (ValueError, ValidationError):
+        logging.warning(
+            "Invalid decrypted score data",
+            extra={"score_tokens": score_tokens},
+            exc_info=True,
+        )
+        return Response(b"error: no")
+
+    if not (
+        beatmap := await app.usecases.akatsuki_beatmaps.fetch_by_md5(
+            decrypted.beatmap_md5,
+        )
+    ):
         return Response(b"error: beatmap")
 
-    username = score_data[1].rstrip()
-    if not (user := await app.usecases.user.auth_user(username, password_md5)):
+    if not (
+        user := await app.usecases.user.auth_user(decrypted.username, password_md5)
+    ):
         return Response(b"")  # empty resp tells osu to retry
 
-    score = Score.from_submission(score_data[2:], beatmap_md5, user)
+    score = Score.from_decrypted(decrypted, user)
     previous_best = await app.usecases.leaderboards.fetch_personal_best(
         beatmap,
         score.mode,
@@ -240,26 +261,7 @@ async def submit_score(
             miss_count=score.nmiss,
         )
 
-        # calculate the score's status
-        if score.passed:
-            if previous_best is not None:
-                if score.pp > previous_best["pp"]:
-                    score.status = ScoreStatus.BEST
-                elif (
-                    score.pp == previous_best["pp"]
-                    and score.score > previous_best["score"]
-                ):
-                    # spin to win!
-                    score.status = ScoreStatus.BEST
-                else:
-                    score.status = ScoreStatus.SUBMITTED
-            else:
-                score.status = ScoreStatus.BEST
-        elif score.quit:
-            score.status = ScoreStatus.QUIT
-        else:
-            score.status = ScoreStatus.FAILED
-
+        score.status = app.usecases.score.calculate_status(score, previous_best)
         score.time_elapsed = score_time
 
         if score.status == ScoreStatus.BEST:
@@ -400,22 +402,7 @@ async def submit_score(
                 n50=score.n50,
                 nmiss=score.nmiss,
             )
-            if grade == "XH":
-                stats.xh_count += 1
-            elif grade == "X":
-                stats.x_count += 1
-            elif grade == "SH":
-                stats.sh_count += 1
-            elif grade == "S":
-                stats.s_count += 1
-            elif grade == "A":
-                stats.a_count += 1
-            elif grade == "B":
-                stats.b_count += 1
-            elif grade == "C":
-                stats.c_count += 1
-            elif grade == "D":
-                stats.d_count += 1
+            app.usecases.stats.adjust_grade_counter(stats, grade, +1)
 
             stats.ranked_score += score.score
 
@@ -430,22 +417,11 @@ async def submit_score(
                     n50=previous_best["count_50"],
                     nmiss=previous_best["count_miss"],
                 )
-                if previous_best_grade == "XH":
-                    stats.xh_count -= 1
-                elif previous_best_grade == "X":
-                    stats.x_count -= 1
-                elif previous_best_grade == "SH":
-                    stats.sh_count -= 1
-                elif previous_best_grade == "S":
-                    stats.s_count -= 1
-                elif previous_best_grade == "A":
-                    stats.a_count -= 1
-                elif previous_best_grade == "B":
-                    stats.b_count -= 1
-                elif previous_best_grade == "C":
-                    stats.c_count -= 1
-                elif previous_best_grade == "D":
-                    stats.d_count -= 1
+                app.usecases.stats.adjust_grade_counter(
+                    stats,
+                    previous_best_grade,
+                    -1,
+                )
 
     await app.usecases.stats.save(stats)
 

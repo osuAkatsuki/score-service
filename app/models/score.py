@@ -8,6 +8,7 @@ from typing import Any
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.score_status import ScoreStatus
+from app.models.decrypted_score_data import DecryptedScoreData
 from app.models.user import User
 
 
@@ -111,29 +112,29 @@ class Score:
         )
 
     @classmethod
-    def from_submission(cls, data: list[str], map_md5: str, user: User) -> Score:
-        return Score(
+    def from_decrypted(cls, data: DecryptedScoreData, user: User) -> Score:
+        return cls(
             id=0,  # set later
-            map_md5=map_md5,
+            map_md5=data.beatmap_md5,
             user_id=user.id,
-            mode=Mode.from_lb(int(data[13]), int(data[11])),
-            mods=Mods(int(data[11])),
+            mode=Mode.from_lb(data.mode, data.mods),
+            mods=Mods(data.mods),
             pp=0.0,  # set later
             sr=0.0,  # set later
-            score=int(data[7]),
-            max_combo=int(data[8]),
+            score=data.score,
+            max_combo=data.max_combo,
             acc=0.0,  # set later
-            n300=int(data[1]),
-            n100=int(data[2]),
-            n50=int(data[3]),
-            nmiss=int(data[6]),
-            ngeki=int(data[4]),
-            nkatu=int(data[5]),
-            passed=data[12] == "True",
+            n300=data.n300,
+            n100=data.n100,
+            n50=data.n50,
+            nmiss=data.nmiss,
+            ngeki=data.ngeki,
+            nkatu=data.nkatu,
+            passed=data.passed,
             quit=False,  # set later
-            full_combo=data[9] == "True",
+            full_combo=data.full_combo,
             status=ScoreStatus.FAILED,  # set later
             time=int(time.time()),
             time_elapsed=0,  # set later
-            online_checksum=data[0],
+            online_checksum=data.online_checksum,
         )

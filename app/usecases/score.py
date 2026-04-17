@@ -5,13 +5,39 @@ import hashlib
 import app.state
 import app.usecases
 from app import job_scheduling
+from app.constants.score_status import ScoreStatus
 from app.models.achievement import Achievement
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
 from app.objects.binary import BinaryWriter
+from app.repositories.leaderboards import LeaderboardScore
 from app.utils.datetime import timestamp_to_dotnet_ticks
+
+
+def calculate_status(
+    score: Score,
+    previous_best: LeaderboardScore | None,
+) -> ScoreStatus:
+    """Determine the ``ScoreStatus`` for a freshly-submitted ``score``.
+
+    Pure function; does not mutate ``score`` or touch external state.
+    """
+    if not score.passed:
+        return ScoreStatus.QUIT if score.quit else ScoreStatus.FAILED
+
+    if previous_best is None:
+        return ScoreStatus.BEST
+
+    if score.pp > previous_best["pp"]:
+        return ScoreStatus.BEST
+
+    # spin to win: same pp, higher raw score still counts as new best
+    if score.pp == previous_best["pp"] and score.score > previous_best["score"]:
+        return ScoreStatus.BEST
+
+    return ScoreStatus.SUBMITTED
 
 
 async def unlock_achievements(score: Score, stats: Stats) -> list[Achievement]:
