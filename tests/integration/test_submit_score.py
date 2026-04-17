@@ -12,6 +12,7 @@ from tests.integration.helpers import DUMMY_REPLAY_BYTES
 from tests.integration.helpers import encrypt_score_payload
 from tests.integration.helpers import seed_beatmap
 from tests.integration.helpers import seed_user
+from tests.integration.helpers import seed_user_stats
 
 OSU_VERSION = "20210103"
 
@@ -22,6 +23,7 @@ async def test_happy_path_score_submission(
     respx_mock: respx.MockRouter,
 ) -> None:
     user = await seed_user(db)
+    await seed_user_stats(db, user_id=user["user_id"])
     beatmap = await seed_beatmap(db)
 
     # Beatmaps service: the app looks up the beatmap by md5 over HTTP.

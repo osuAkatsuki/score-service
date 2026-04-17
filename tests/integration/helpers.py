@@ -57,7 +57,10 @@ async def seed_user(
     *,
     user_id: int = 1000,
     username: str = "tester",
+    username_safe: str | None = None,
     plaintext_password: str = "testpass",
+    email: str | None = None,
+    register_datetime: int = 0,
     privileges: int = 3,  # USER_NORMAL | USER_PUBLIC
     country: str = "US",
 ) -> dict[str, Any]:
@@ -75,18 +78,17 @@ async def seed_user(
         {
             "id": user_id,
             "username": username,
-            "username_safe": username.lower().replace(" ", "_"),
+            "username_safe": (
+                username_safe
+                if username_safe is not None
+                else username.lower().replace(" ", "_")
+            ),
             "password_bcrypt": password_bcrypt,
-            "email": f"{username}@test.local",
-            "register_datetime": 0,
+            "email": email if email is not None else f"{username}@test.local",
+            "register_datetime": register_datetime,
             "privileges": privileges,
             "country": country,
         },
-    )
-    # user_stats row is required — submit_score reads and updates it.
-    await db.execute(
-        "INSERT INTO user_stats (user_id, mode) VALUES (:user_id, 0)",
-        {"user_id": user_id},
     )
     return {
         "user_id": user_id,
@@ -96,17 +98,43 @@ async def seed_user(
     }
 
 
+async def seed_user_stats(
+    db: Database,
+    *,
+    user_id: int,
+    mode: int = 0,
+) -> None:
+    # submit_score reads and updates user_stats; any test covering score
+    # submission needs a row for the (user_id, mode) pair it exercises.
+    await db.execute(
+        "INSERT INTO user_stats (user_id, mode) VALUES (:user_id, :mode)",
+        {"user_id": user_id, "mode": mode},
+    )
+
+
 async def seed_beatmap(
     db: Database,
     *,
     beatmap_id: int = 1_000_000,
+    beatmapset_id: int | None = None,
     beatmap_md5: str = "a" * 32,
     song_name: str = "Test Artist - Test Song [Test Diff]",
     file_name: str = "Test Artist - Test Song (Test Mapper) [Test Diff].osu",
+    ar: float = 9.0,
+    od: float = 9.0,
     mode: int = 0,
-    ranked: int = 2,  # RANKED
     max_combo: int = 1000,
     hit_length: int = 120,
+    bpm: int = 180,
+    ranked: int = 2,  # RANKED
+    latest_update: int = 0,
+    ranked_status_freezed: int = 0,
+    playcount: int = 0,
+    passcount: int = 0,
+    rating: float = 10.0,
+    count_circles: int = 500,
+    count_sliders: int = 500,
+    count_spinners: int = 0,
 ) -> dict[str, Any]:
     await db.execute(
         """
@@ -117,21 +145,34 @@ async def seed_beatmap(
             count_circles, count_sliders, count_spinners
         ) VALUES (
             :beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, :file_name,
-            9.0, 9.0, :mode, :max_combo, :hit_length, 180, :ranked, 0,
-            0, 0, 0, 10.0,
-            500, 500, 0
+            :ar, :od, :mode, :max_combo, :hit_length, :bpm, :ranked, :latest_update,
+            :ranked_status_freezed, :playcount, :passcount, :rating,
+            :count_circles, :count_sliders, :count_spinners
         )
         """,
         {
             "beatmap_id": beatmap_id,
-            "beatmapset_id": beatmap_id + 1,
+            "beatmapset_id": (
+                beatmapset_id if beatmapset_id is not None else beatmap_id + 1
+            ),
             "beatmap_md5": beatmap_md5,
             "song_name": song_name,
             "file_name": file_name,
+            "ar": ar,
+            "od": od,
             "mode": mode,
-            "ranked": ranked,
             "max_combo": max_combo,
             "hit_length": hit_length,
+            "bpm": bpm,
+            "ranked": ranked,
+            "latest_update": latest_update,
+            "ranked_status_freezed": ranked_status_freezed,
+            "playcount": playcount,
+            "passcount": passcount,
+            "rating": rating,
+            "count_circles": count_circles,
+            "count_sliders": count_sliders,
+            "count_spinners": count_spinners,
         },
     )
     return {"beatmap_id": beatmap_id, "beatmap_md5": beatmap_md5}
