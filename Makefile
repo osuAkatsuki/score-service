@@ -12,10 +12,10 @@ run-bg:
 	docker run --network=host --env-file=.env -d score-service:latest
 
 utest:
-	pytest
+	pytest tests/unit
 
 itest:
 	docker compose -f docker-compose.test.yml up -d --wait
-	pytest -m integration tests/integration
+	pytest tests/integration
 
 test: utest itest
