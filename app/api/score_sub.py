@@ -6,6 +6,7 @@ import time
 from base64 import b64decode
 from base64 import b64encode
 from copy import copy
+from datetime import UTC
 from datetime import datetime
 from datetime import timezone
 from typing import NamedTuple
@@ -534,7 +535,7 @@ async def submit_score(
 
     beatmap_last_update_datetime = datetime.fromtimestamp(
         beatmap.last_update,
-        tz=timezone.utc,
+        tz=UTC,
     )
 
     submission_charts = [

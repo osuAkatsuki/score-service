@@ -23,7 +23,9 @@ class AchievementRegistry:
     def __init__(self) -> None:
         self._achievements: dict[str, Achievement] = {}
 
-    def achievement(self, file: str) -> Callable[
+    def achievement(
+        self, file: str
+    ) -> Callable[
         [Callable[[Score, int, Stats], bool]],
         Callable[[Score, int, Stats], bool],
     ]:

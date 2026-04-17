@@ -130,11 +130,11 @@ class Webhook:
     def json(self) -> dict[str, Any]:
         if not any([self.content, self.file, self.embeds]):
             raise Exception(
-                "Webhook must contain atleast one " "of (content, file, embeds).",
+                "Webhook must contain atleast one of (content, file, embeds).",
             )
 
         if self.content and len(self.content) > 2000:
-            raise Exception("Webhook content must be under " "2000 characters.")
+            raise Exception("Webhook content must be under 2000 characters.")
 
         payload: dict[str, Any] = {"embeds": []}
 
@@ -216,9 +216,7 @@ def log_user_edit(
     """Logs a user edit action to the admin webhook."""
 
     embed = Embed(title="User Edited!", color=EDIT_COL)
-    embed.description = (
-        f"{user.name} ({user.id}) has just been {action}" f" for {reason}!"
-    )
+    embed.description = f"{user.name} ({user.id}) has just been {action} for {reason}!"
     embed.set_author(name="LESS Score Server", icon_url=EDIT_ICON)
     embed.set_footer(text="This is an automated action performed by the server.")
 
