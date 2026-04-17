@@ -15,7 +15,8 @@ utest:
 	pytest tests/unit
 
 itest:
-	docker compose -f docker-compose.test.yml up -d --wait
+	docker compose -f docker-compose.test.yml up -d --wait mysql redis
+	docker compose -f docker-compose.test.yml run --rm migrations
 	pytest tests/integration
 
 test: utest itest

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from typing import TYPE_CHECKING
+from urllib.parse import quote
 
 import aio_pika
 import databases
@@ -82,19 +83,60 @@ class Database:
         await self.write_database.execute_many(query, values)
 
 
+def dsn(
+    *,
+    dialect: str,
+    database: str,
+    driver: str | None = None,
+    username: str | None = None,
+    password: str | None = None,
+    host: str | None = None,
+    port: int | None = None,
+) -> str:
+    """Build a database connection URL.
+
+    Format is a standard RFC 3986 URI; the optional ``+driver`` suffix on
+    the scheme is the SQLAlchemy convention for disambiguating the
+    underlying client library (``mysql+asyncmy``, ``postgresql+psycopg``).
+
+    ``dialect`` and ``database`` are required. Everything else is optional
+    so the same helper can produce authless / portless / driverless DSNs.
+    ``username`` and ``password`` are percent-encoded so values containing
+    ``@``, ``/``, ``:``, spaces, etc. don't break the URL.
+    """
+    scheme = f"{dialect}+{driver}" if driver else dialect
+
+    userinfo = ""
+    if username is not None:
+        userinfo = quote(username, safe="")
+        if password is not None:
+            userinfo += f":{quote(password, safe='')}"
+        userinfo += "@"
+
+    authority = host or ""
+    if port is not None:
+        authority += f":{port}"
+
+    return f"{scheme}://{userinfo}{authority}/{database}"
+
+
 database = Database(
-    read_dsn="mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
+    read_dsn=dsn(
+        dialect="mysql",
+        driver="asyncmy",
         username=config.READ_DB_USER,
         password=config.READ_DB_PASS,
         host=config.READ_DB_HOST,
         port=config.READ_DB_PORT,
-        db=config.READ_DB_NAME,
+        database=config.READ_DB_NAME,
     ),
-    write_dsn="mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
+    write_dsn=dsn(
+        dialect="mysql",
+        driver="asyncmy",
         username=config.WRITE_DB_USER,
         password=config.WRITE_DB_PASS,
         host=config.WRITE_DB_HOST,
         port=config.WRITE_DB_PORT,
-        db=config.WRITE_DB_NAME,
+        database=config.WRITE_DB_NAME,
     ),
 )
