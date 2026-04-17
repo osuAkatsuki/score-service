@@ -49,22 +49,27 @@ class ScoreData(NamedTuple):
 
 
 async def parse_form(score_data: FormData) -> ScoreData | None:
-    try:
-        score_parts = score_data.getlist("score")
-        assert len(score_parts) == 2, "Invalid score data"
-
-        score_data_b64 = score_data.getlist("score")[0]
-        assert isinstance(score_data_b64, str), "Invalid score data"
-        replay_file = score_data.getlist("score")[1]
-        assert isinstance(replay_file, StarletteUploadFile), "Invalid replay data"
-    except AssertionError as exc:
-        logging.warning(f"Failed to validate score multipart data: ({exc.args[0]})")
-        return None
-    else:
-        return ScoreData(
-            score_data_b64.encode(),
-            replay_file,
+    score_parts = score_data.getlist("score")
+    if len(score_parts) != 2:
+        logging.warning(
+            "Failed to validate score multipart data: expected 2 score parts",
+            extra={"num_parts": len(score_parts)},
         )
+        return None
+
+    score_data_b64, replay_file = score_parts
+    if not isinstance(score_data_b64, str):
+        logging.warning(
+            "Failed to validate score multipart data: score payload is not a string",
+        )
+        return None
+    if not isinstance(replay_file, StarletteUploadFile):
+        logging.warning(
+            "Failed to validate score multipart data: replay is not an upload file",
+        )
+        return None
+
+    return ScoreData(score_data_b64.encode(), replay_file)
 
 
 class ScoreClientData(NamedTuple):
