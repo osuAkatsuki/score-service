@@ -260,26 +260,7 @@ async def submit_score(
             miss_count=score.nmiss,
         )
 
-        # calculate the score's status
-        if score.passed:
-            if previous_best is not None:
-                if score.pp > previous_best["pp"]:
-                    score.status = ScoreStatus.BEST
-                elif (
-                    score.pp == previous_best["pp"]
-                    and score.score > previous_best["score"]
-                ):
-                    # spin to win!
-                    score.status = ScoreStatus.BEST
-                else:
-                    score.status = ScoreStatus.SUBMITTED
-            else:
-                score.status = ScoreStatus.BEST
-        elif score.quit:
-            score.status = ScoreStatus.QUIT
-        else:
-            score.status = ScoreStatus.FAILED
-
+        score.status = app.usecases.score.calculate_status(score, previous_best)
         score.time_elapsed = score_time
 
         if score.status == ScoreStatus.BEST:
