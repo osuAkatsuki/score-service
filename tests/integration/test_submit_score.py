@@ -131,7 +131,7 @@ async def test_happy_path_score_submission(
     body = response.content
     assert b"chartId:beatmap" in body, body
     assert b"chartId:overall" in body, body
-    assert b"onlineScoreId:" in body
+    assert b"onlineScoreId:" in body, body
 
     # The score was persisted with the expected raw score value.
     score_row = await db.fetch_one(
