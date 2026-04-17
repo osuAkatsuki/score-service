@@ -10,7 +10,6 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
-import app.state.services
 from . import aggregate_score_stats
 from . import direct
 from . import favourites
@@ -23,15 +22,19 @@ from . import score_sub
 from . import screenshots
 from . import seasonals
 from app.models.user import User
+from app.state.container import AppContainer
+from app.state.container import get_container
 from app.usecases.user import authenticate_user
 
 router = APIRouter(default_response_class=Response)
 
 
 @router.get("/_health")
-async def healthcheck() -> Response:
-    await app.state.services.redis.ping()  # type: ignore[misc]
-    await app.state.services.database.execute("SELECT 1")
+async def healthcheck(
+    container: AppContainer = Depends(get_container),
+) -> Response:
+    await container.redis.ping()  # type: ignore[misc]
+    await container.database.execute("SELECT 1")
     return ORJSONResponse({"status": "ok"})
 
 
