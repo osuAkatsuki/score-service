@@ -1,0 +1,26 @@
+name: Test
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "**.py"
+      - "pytest.ini"
+      - "requirements*.txt"
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: [self-hosted, vpc]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: pip install -rrequirements{,-dev}.txt
+      - name: Run pytest
+        run: pytest
