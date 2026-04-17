@@ -5,7 +5,11 @@ import logging
 from starlette.config import Config
 from starlette.datastructures import CommaSeparatedStrings
 
-config = Config(".env")
+# Config reads from os.environ. Prod's .env is sourced into the shell by
+# scripts/bootstrap.sh, tests load .env.test via python-dotenv — nothing
+# relies on starlette's own .env lookup, which was only emitting a "Config
+# file '.env' not found" warning on every import.
+config = Config()
 
 APP_HOST = config("APP_HOST")
 APP_PORT = config("APP_PORT", cast=int)
