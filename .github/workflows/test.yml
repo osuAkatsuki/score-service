@@ -39,10 +39,8 @@ jobs:
           cache: "pip"
       - name: Install dependencies
         run: pip install -rrequirements{,-dev}.txt
-      - name: Start MySQL + Redis
-        run: docker compose -f docker-compose.test.yml up -d --wait mysql redis
-      - name: Run schema migrations
-        run: docker compose -f docker-compose.test.yml run --rm migrations
+      - name: Start test services (MySQL + migrations + Redis)
+        run: docker compose -f docker-compose.test.yml up -d --wait
       - name: Run integration tests
         run: pytest -m integration tests/integration
       - name: Dump compose logs on failure

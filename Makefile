@@ -1,5 +1,7 @@
 #!/usr/bin/env make
 
+.PHONY: build run run-bg utest itest test
+
 build:
 	docker build -t score-service:latest .
 
@@ -13,8 +15,7 @@ utest:
 	pytest
 
 itest:
-	docker compose -f docker-compose.test.yml up -d --wait mysql redis
-	docker compose -f docker-compose.test.yml run --rm migrations
+	docker compose -f docker-compose.test.yml up -d --wait
 	pytest -m integration tests/integration
 
 test: utest itest
