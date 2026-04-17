@@ -1,5 +1,7 @@
 #!/usr/bin/env make
 
+.PHONY: build run run-bg utest itest test
+
 build:
 	docker build -t score-service:latest .
 
@@ -8,3 +10,12 @@ run:
 
 run-bg:
 	docker run --network=host --env-file=.env -d score-service:latest
+
+utest:
+	pytest tests/unit
+
+itest:
+	docker compose -f docker-compose.test.yml up -d --wait
+	pytest tests/integration
+
+test: utest itest

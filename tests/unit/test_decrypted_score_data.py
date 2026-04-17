@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.models.decrypted_score_data import DecryptedScoreData
-from tests.helpers import make_score_tokens
+from tests.unit.helpers import make_score_tokens
 
 
 def test_parses_well_formed_tokens() -> None:

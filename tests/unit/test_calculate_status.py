@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from app.constants.score_status import ScoreStatus
 from app.usecases.score import calculate_status
-from tests.helpers import make_leaderboard_score
-from tests.helpers import make_score
+from tests.unit.helpers import make_leaderboard_score
+from tests.unit.helpers import make_score
 
 
 def test_failed_when_not_passed_and_not_quit() -> None:

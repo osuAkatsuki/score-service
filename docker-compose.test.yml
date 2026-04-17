@@ -1,0 +1,43 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: testroot
+      MYSQL_DATABASE: score_service_test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptestroot"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    tmpfs:
+      - /var/lib/mysql
+
+  # Runs the canonical akatsuki schema migrations against the test MySQL and
+  # exits. Pulled directly from the public mysql-database repo so we stay in
+  # sync with production schema changes without vendoring DDL here.
+  migrations:
+    build:
+      context: https://github.com/osuAkatsuki/mysql-database.git#main
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: testroot
+      DB_NAME: score_service_test
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
