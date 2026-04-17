@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
 from typing import TYPE_CHECKING
+from typing import Any
 from urllib.parse import quote
 
 import aio_pika

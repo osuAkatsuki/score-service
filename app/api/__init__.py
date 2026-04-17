@@ -10,6 +10,11 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
+from app.models.user import User
+from app.state.context import AppContext
+from app.state.context import get_context
+from app.usecases.user import authenticate_user
+
 from . import aggregate_score_stats
 from . import direct
 from . import favourites
@@ -21,10 +26,6 @@ from . import replays
 from . import score_sub
 from . import screenshots
 from . import seasonals
-from app.models.user import User
-from app.state.context import AppContext
-from app.state.context import get_context
-from app.usecases.user import authenticate_user
 
 router = APIRouter(default_response_class=Response)
 
