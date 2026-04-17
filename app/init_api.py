@@ -20,6 +20,7 @@ import app.state
 import app.usecases
 import config
 from app import job_scheduling
+from app.state.container import AppContainer
 
 ctx_stack = contextlib.AsyncExitStack()
 
@@ -82,6 +83,19 @@ def init_events(asgi_app: FastAPI) -> None:
             app.state.services.amqp_channel = await app.state.services.amqp.channel()
 
         await app.state.cache.init_cache()
+
+        # All services are populated on app.state.services at this point.
+        # Expose them as a typed container for `Depends(get_container)` users.
+        # The module-level globals on app.state.services are kept in sync as a
+        # backwards-compatibility shim during the gradual migration.
+        asgi_app.state.container = AppContainer(
+            database=app.state.services.database,
+            redis=app.state.services.redis,
+            http_client=app.state.services.http_client,
+            amqp=app.state.services.amqp,
+            amqp_channel=app.state.services.amqp_channel,
+            s3_client=app.state.services.s3_client,
+        )
 
         logging.info("Server has started!")
 
