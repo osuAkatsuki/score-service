@@ -25,12 +25,12 @@ def client() -> Iterator[TestClient]:
 
 @pytest.fixture
 async def db(client: TestClient) -> AsyncIterator[Database]:
-    # A *separate* Database instance, scoped to the test function. The app's
-    # own pool (app.state.services.database) lives on the TestClient's event
-    # loop and can't be shared across pytest-asyncio's per-test loops.
-    # Uses the same app.state.services.Database wrapper as production so tests
-    # exercise the read/write-split path the real code uses, with MySQL
-    # autocommit making writes visible across connections immediately.
+    # Dedicated test-owned Database, separate from app.state.services.database.
+    # Seeds, TRUNCATE cleanup, and assertions go through this connection; the
+    # app keeps its own pool for the HTTP request under test. Keeping them
+    # separate is the usual pattern for Django/SQLAlchemy-style test suites —
+    # DDL and fixture state live with the harness, request state with the
+    # app. MySQL autocommit makes writes visible across both immediately.
     database = Database(
         read_dsn=dsn(
             dialect="mysql",
