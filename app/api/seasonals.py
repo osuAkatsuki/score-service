@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+from fastapi import Depends
 from fastapi import Response
 from fastapi.responses import ORJSONResponse
 
-import app.state
+from app.state.context import AppContext
+from app.state.context import get_context
 
 
-async def get_seasonals() -> Response:
-    db_seasonals = await app.state.services.database.fetch_all(
+async def get_seasonals(
+    context: AppContext = Depends(get_context),
+) -> Response:
+    db_seasonals = await context.database.fetch_all(
         "SELECT url FROM seasonal_bg WHERE enabled = 1",
     )
 

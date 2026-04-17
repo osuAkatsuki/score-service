@@ -1,14 +1,16 @@
-name: Lint
+name: Test
 on:
   push:
     branches:
       - master
     paths:
       - "**.py"
+      - "pytest.ini"
+      - "requirements*.txt"
   pull_request:
 
 jobs:
-  mypy:
+  pytest:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,5 +22,5 @@ jobs:
           cache: "pip"
       - name: Install dependencies
         run: pip install -rrequirements{,-dev}.txt
-      - name: Run mypy
-        run: mypy .
+      - name: Run pytest
+        run: pytest
