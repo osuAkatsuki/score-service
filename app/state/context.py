@@ -1,12 +1,3 @@
-"""Composition-root context holding every shared service.
-
-This is the beginning of the migration away from module-level globals on
-:mod:`app.state.services`. New code should prefer receiving an
-:class:`AppContext` via ``Depends(get_context)`` instead of reaching
-into ``app.state.services.X`` directly. The module globals remain in
-place for backwards compatibility and reference the same object instances
-as the context fields.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass

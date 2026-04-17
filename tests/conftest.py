@@ -1,15 +1,9 @@
-"""Pytest-wide fixtures and environment setup.
-
-Populates required env vars with dummy values *before* any application
-module is imported so that importing :mod:`config` (starlette Config)
-does not raise a ``KeyError``. Tests that need a real running service
-layer should be marked accordingly and are not run in this file's
-default suite.
-"""
 from __future__ import annotations
 
 import os
 
+# Set env vars before any app module imports so starlette Config does not
+# raise on missing keys.
 _DEFAULT_TEST_ENV: dict[str, str] = {
     "APP_HOST": "127.0.0.1",
     "APP_PORT": "8080",

@@ -1,8 +1,3 @@
-"""Shared factory helpers for building domain objects in tests.
-
-Each factory returns a fully-populated instance with sensible defaults so
-individual tests only have to override the fields they care about.
-"""
 from __future__ import annotations
 
 from app.constants.mode import Mode
