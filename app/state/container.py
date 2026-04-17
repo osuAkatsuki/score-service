@@ -7,7 +7,6 @@ into ``app.state.services.X`` directly. The module globals remain in
 place for backwards compatibility and reference the same object instances
 as the container fields.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass

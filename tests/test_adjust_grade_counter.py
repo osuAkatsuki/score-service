@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from app.usecases.stats import adjust_grade_counter
-
 from tests.helpers import make_stats
 
 

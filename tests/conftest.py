@@ -6,7 +6,6 @@ does not raise a ``KeyError``. Tests that need a real running service
 layer should be marked accordingly and are not run in this file's
 default suite.
 """
-
 from __future__ import annotations
 
 import os
