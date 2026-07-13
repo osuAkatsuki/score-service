@@ -77,22 +77,76 @@ class Mods(IntFlag):
         return _mods
 
     KEY_MODS = KEY1 | KEY2 | KEY3 | KEY4 | KEY5 | KEY6 | KEY7 | KEY8 | KEY9
+    MANIA_ONLY = FADEIN | RANDOM | KEY_MODS
+    STD_ONLY = SPUNOUT | AUTOPILOT
 
     @property
     def conflict(self) -> bool:
         """Anticheat measure to check for illegal mod combos."""
 
+        # Speed mods
         if self & Mods.DOUBLETIME and self & Mods.HALFTIME:
             return True
-        elif self & Mods.NIGHTCORE and not self & Mods.DOUBLETIME:
+        if self & Mods.NIGHTCORE and not self & Mods.DOUBLETIME:
             return True
-        elif self & Mods.EASY and self & Mods.HARDROCK:
+
+        # Difficulty mods
+        if self & Mods.EASY and self & Mods.HARDROCK:
             return True
-        elif self & Mods.RELAX and self & Mods.AUTOPILOT:
+
+        # Visibility mods
+        if self & Mods.HIDDEN and self & Mods.FADEIN:
             return True
-        elif self & Mods.HIDDEN and self & Mods.FADEIN:
+
+        # Game-changing mods
+        if self & Mods.RELAX and self & Mods.AUTOPILOT:
             return True
-        elif bin(self & Mods.KEY_MODS).count("1") > 1:
+
+        # Fail-prevention conflicts
+        fail_prevention_mods = Mods.NOFAIL | Mods.RELAX | Mods.AUTOPILOT
+        if self & fail_prevention_mods:
+            # NF/RX/AP + SD (can't both prevent and require fail)
+            if self & Mods.SUDDENDEATH:
+                return True
+            # NF/RX/AP + PF (can't both allow failure and require perfection)
+            if self & Mods.PERFECT:
+                return True
+
+        # RX/AP + NF (NF is redundant with RX/AP)
+        if self & (Mods.RELAX | Mods.AUTOPILOT):
+            if self & Mods.NOFAIL:
+                return True
+
+        # SD + PF (PF is stricter, having both is redundant/conflicting)
+        if self & Mods.SUDDENDEATH and self & Mods.PERFECT:
+            return True
+
+        # SpunOut conflicts with auto-aim mods
+        if self & Mods.SPUNOUT:
+            if self & (Mods.RELAX | Mods.AUTOPILOT):
+                return True
+
+        # Multiple key mods (mania)
+        if bin(self & Mods.KEY_MODS).count("1") > 1:
+            return True
+
+        return False
+
+    def incompatible_with_mode(self, mode_vn: int) -> bool:
+        """Check if mods are incompatible with the given game mode.
+
+        Args:
+            mode_vn: Vanilla mode (0=std, 1=taiko, 2=catch, 3=mania)
+
+        Returns:
+            True if mods contain mode-incompatible mods
+        """
+        # Mania-only mods
+        if mode_vn != 3 and self & Mods.MANIA_ONLY:
+            return True
+
+        # Standard-only mods
+        if mode_vn != 0 and self & Mods.STD_ONLY:
             return True
 
         return False
