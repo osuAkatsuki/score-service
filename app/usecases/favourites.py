@@ -6,7 +6,6 @@ from typing import Any
 import app.state.services
 from app.models.favourites import UserFavourite
 
-
 READ_PARAMS = """
     user_id,
     beatmapset_id,

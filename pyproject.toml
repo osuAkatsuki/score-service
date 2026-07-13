@@ -1,0 +1,28 @@
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-exclude = ["mysql-database"]
+
+[tool.ruff.lint]
+# F = pyflakes (replaces pre-commit-hooks' ast/builtin-literals checks,
+#     plus unused imports).
+# I = isort (replaces reorder-python-imports).
+# UP = pyupgrade.
+# COM = flake8-commas (replaces add-trailing-comma). Trailing-comma-missing
+#       (COM812) conflicts with the formatter, so we disable that specific
+#       rule and let `ruff format` handle trailing commas.
+select = ["F", "I", "UP", "COM"]
+# F401: unused-import — codebase has ~16 real ones that predate ruff; leave as
+#       a follow-up so this PR is a pure migration.
+# COM812: trailing-comma-missing — conflicts with the formatter.
+ignore = ["COM812", "F401"]
+
+[tool.ruff.lint.isort]
+# Matches reorder-python-imports' one-import-per-line style and its
+# --add-import 'from __future__ import annotations' flag.
+force-single-line = true
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.format]
+# Format code blocks inside docstrings (replaces blacken-docs).
+docstring-code-format = true
