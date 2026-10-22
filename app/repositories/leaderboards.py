@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import cast
 from typing import Literal
 from typing import TypedDict
+from typing import cast
 
 import app.state
 
