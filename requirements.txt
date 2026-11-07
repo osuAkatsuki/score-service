@@ -6,8 +6,8 @@ databases[asyncmy]
 fastapi
 httpx
 orjson
-# Builds for x86-64 only. Pinned: a newer release may not decode the stored .orz files.
-osu-orz==0.1.1; platform_machine == "x86_64"
+# Pinned: a newer release may not decode the stored .orz files.
+osu-orz==0.1.2
 py3rijndael
 python-json-logger
 python-multipart

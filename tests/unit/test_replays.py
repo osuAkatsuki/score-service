@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import osu_orz
 import pytest
 
 import app.state.services
@@ -28,7 +29,6 @@ async def test_osr_is_preferred_over_orz(stored: dict[str, bytes]) -> None:
 async def test_orz_is_decompressed_when_osr_is_missing(
     stored: dict[str, bytes],
 ) -> None:
-    osu_orz = pytest.importorskip("osu_orz")  # installed on x86-64 only
     stored["replays-orz/1.orz"] = osu_orz.compress(b"replay", mode=osu_orz.Mode.OSU)
     assert await replays.download_replay(1) == b"replay"
 
