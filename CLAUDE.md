@@ -37,7 +37,7 @@ upstream git@github.com:RealistikOsu/USSR.git (fork source - NEVER PR here)
 
 ## Code Style
 
-- Python 3.11+
+- Python 3.12+
 - Type hints required (mypy strict mode)
 - Black formatter (line length 88)
 - Import sorting with reorder_python_imports
