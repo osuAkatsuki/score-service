@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import app.state.services
 from app.adapters import s3
 
@@ -17,5 +19,12 @@ async def download_replay(score_id: int) -> bytes | None:
         replay_data = await s3.download(file_name=f"{score_id}.osr", folder="replays")
         if replay_data is not None:
             return replay_data
+
+        # Replays converted to ORZ may no longer have an .osr copy.
+        orz_data = await s3.download(file_name=f"{score_id}.orz", folder="replays-orz")
+        if orz_data is not None:
+            import osu_orz  # installed on x86-64 only, see requirements.txt
+
+            replay_data = await asyncio.to_thread(osu_orz.decompress, orz_data)
 
     return replay_data
