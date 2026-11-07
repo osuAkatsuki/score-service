@@ -6,6 +6,8 @@ databases[asyncmy]
 fastapi
 httpx
 orjson
+# Pinned: a newer release may not decode the stored .orz files.
+osu-orz==0.1.2
 py3rijndael
 python-json-logger
 python-multipart
