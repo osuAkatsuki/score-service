@@ -25,6 +25,7 @@ async def fetch_personal_best(
     requestee_user_id: int,
     vanilla_pp_leaderboards: bool,
     mods_filter: Mods | None = None,
+    primary: bool = False,
 ) -> LeaderboardScore | None:
     # if there is a mods filter we will allow non-bests
     # so that a user's best modded score will appear
@@ -42,6 +43,7 @@ async def fetch_personal_best(
         mods_filter=int_mods_filter,
         best_scores_only=best_scores_only,
         sort_column=sort_column,
+        primary=primary,
     )
 
     return personal_best

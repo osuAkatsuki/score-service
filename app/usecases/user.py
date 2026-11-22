@@ -87,7 +87,7 @@ async def fetch_db_id(user_id: int) -> User | None:
 
 async def auth_user(username: str, password: str) -> User | None:
     user = await fetch_db(username)
-    if not user:
+    if not user or user.privileges.is_banned:
         return None
 
     correct_password = app.usecases.password.verify_password(
@@ -110,22 +110,9 @@ def authenticate_user(
         username: str = param_function(..., alias=name_arg),
         password: str = param_function(..., alias=password_arg),
     ) -> User:
-        user = await fetch_db(username)
-        if not user:
-            raise HTTPException(
-                status_code=401,
-                detail=error_text,
-            )
-
-        correct_password = app.usecases.password.verify_password(
-            password,
-            user.password_bcrypt,
-        )
-        if not correct_password:
-            raise HTTPException(
-                status_code=401,
-                detail=error_text,
-            )
+        user = await auth_user(username, password)
+        if user is None:
+            raise HTTPException(status_code=401, detail=error_text)
 
         return user
 

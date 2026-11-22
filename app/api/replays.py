@@ -28,19 +28,26 @@ async def get_replay(
 
     if not db_score:
         logging.error(f"Requested non-existent replay ID {score_id}")
-        return Response(b"error: no")
+        return Response(b"error: no", media_type="text/plain")
 
     mode = Mode.from_lb(db_score["play_mode"], db_score["mods"])
 
     replay_bytes = await app.usecases.replays.download_replay(score_id)
     if replay_bytes is None:
-        return Response(b"")
+        return Response(b"", media_type="text/plain")
 
     if db_score["userid"] != user.id:
         await app.usecases.user.increment_replays_watched(db_score["userid"], mode)
 
     logging.debug(f"Served replay ID {score_id}")
-    return Response(content=replay_bytes)
+    return Response(
+        content=replay_bytes,
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": "attachment",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 def get_replay_mode_name(mode: int) -> str:

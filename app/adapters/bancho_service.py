@@ -57,8 +57,8 @@ async def send_message_to_channel(
             params={
                 "to": channel,
                 "msg": message,
-                "k": config.FOKABOT_KEY,
             },
+            headers={"X-Fokabot-Key": config.FOKABOT_KEY},
             timeout=timeout,
         )
         response.raise_for_status()
