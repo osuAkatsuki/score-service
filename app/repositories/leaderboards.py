@@ -209,7 +209,9 @@ async def fetch_user_score(
     connection = database.write_database if primary else database.read_database
     score_record = await connection.fetch_one(query, params)
     return (
-        cast(LeaderboardScore, dict(score_record._mapping)) if score_record is not None else None
+        cast(LeaderboardScore, dict(score_record._mapping))
+        if score_record is not None
+        else None
     )
 
 
