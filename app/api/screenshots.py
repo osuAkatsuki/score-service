@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import logging
-import random
-import string
+import secrets
 import sys
 
 from fastapi import Depends
@@ -19,7 +18,6 @@ from app.usecases.user import authenticate_user
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000
-SS_NAME_LEN = 8
 
 
 async def should_ratelimit_ip(client_ip_address: str) -> bool:
@@ -32,13 +30,6 @@ async def should_ratelimit_ip(client_ip_address: str) -> bool:
 
     await app.state.services.redis.setex(redis_key, SS_DELAY, 1)
     return False
-
-
-AV_CHARS = string.ascii_letters + string.digits
-
-
-def gen_rand_str(len: int) -> str:
-    return "".join(random.choice(AV_CHARS) for _ in range(len))
 
 
 async def fetch_screenshot(file_path: str) -> Response:
@@ -60,15 +51,15 @@ async def upload_screenshot(
     client_ip_address: str = Header(..., alias="X-Real-IP"),
 ) -> Response:
     if not await app.usecases.user.user_is_online(user.id):
-        logging.error(f"{user} tried to upload a screenshot while offline")
+        logging.error(f"User {user.id} tried to upload a screenshot while offline")
         return Response(b"https://akatsuki.gg/")
 
     if client_user_agent != "osu!":
-        logging.error(f"{user} tried to upload a screenshot using a bot")
+        logging.error(f"User {user.id} tried to upload a screenshot using a bot")
         return Response(b"https://akatsuki.gg/")
 
     if await should_ratelimit_ip(client_ip_address):
-        logging.error(f"{user} tried to upload a screenshot while ratelimited")
+        logging.error(f"User {user.id} tried to upload a screenshot while ratelimited")
         return Response(b"https://akatsuki.gg/")
 
     content = await screenshot_file.read()
@@ -81,13 +72,13 @@ async def upload_screenshot(
     elif content.startswith(b"\211PNG\r\n\032\n"):
         ext = "png"
     else:
-        logging.error(f"{user} tried to upload unknown extension file")
+        logging.error(f"User {user.id} tried to upload unknown extension file")
         return Response(b"https://akatsuki.gg/")
 
-    file_name = f"{gen_rand_str(SS_NAME_LEN)}.{ext}"
+    file_name = f"{secrets.token_urlsafe(16)}.{ext}"
 
     # TODO: background with retry policy
     await s3.upload(content, file_name, "screenshots")
 
-    logging.info(f"{user} has uploaded screenshot {file_name}")
+    logging.info(f"User {user.id} uploaded a screenshot")
     return Response(file_name.encode())

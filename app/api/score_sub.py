@@ -39,7 +39,6 @@ from app.models.beatmap import Beatmap
 from app.models.decrypted_score_data import DecryptedScoreData
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
-from app.redis_lock import RedisLock
 from app.usecases import multiplayer
 from app.usecases.user import restrict_user
 from app.utils.score_utils import calculate_accuracy
@@ -171,6 +170,15 @@ async def submit_score(
         )
         return Response(b"error: no")
 
+    mods = Mods(decrypted.mods)
+    if (
+        decrypted.mode not in (Mode.STD, Mode.TAIKO, Mode.CATCH, Mode.MANIA)
+        or (decrypted.mode == Mode.MANIA and mods & Mods.RELAX)
+        or (decrypted.mode != Mode.STD and mods & Mods.AUTOPILOT)
+        or (mods & (Mods.RELAX | Mods.AUTOPILOT)) == (Mods.RELAX | Mods.AUTOPILOT)
+    ):
+        return Response(b"error: no")
+
     if not (
         beatmap := await app.usecases.akatsuki_beatmaps.fetch_by_md5(
             decrypted.beatmap_md5,
@@ -184,12 +192,6 @@ async def submit_score(
         return Response(b"")  # empty resp tells osu to retry
 
     score = Score.from_decrypted(decrypted, user)
-    previous_best = await app.usecases.leaderboards.fetch_personal_best(
-        beatmap,
-        score.mode,
-        requestee_user_id=user.id,
-        vanilla_pp_leaderboards=False,
-    )
 
     score.acc = calculate_accuracy(
         n300=score.n300,
@@ -228,8 +230,7 @@ async def submit_score(
     if user_agent != "osu!":
         await app.usecases.user.restrict_user(
             user,
-            "The expected user-agent header for an osu! client is 'osu!', while "
-            f"the client sent '{user_agent}'. (score submit gate)",
+            "The client did not send the expected osu! User-Agent. (score submit gate)",
         )
     await app.usecases.user.handle_pending_username_change(user.id)
 
@@ -241,32 +242,45 @@ async def submit_score(
             "(score submit gate)",
         )
 
-    async with RedisLock(f"score_submission:{score.online_checksum}"):
+    score.pp, score.sr = await app.usecases.performance.calculate_performance(
+        beatmap_id=beatmap.id,
+        beatmap_md5=beatmap.md5,
+        mode=score.mode,
+        mods=score.mods.value,
+        max_combo=score.max_combo,
+        accuracy=score.acc,
+        miss_count=score.nmiss,
+    )
+
+    primary = app.state.services.database.write_database
+    async with primary.transaction():
+        # Serialize score decisions for this user across service replicas.
+        await primary.fetch_val(
+            "SELECT id FROM users WHERE id = :id FOR UPDATE",
+            {"id": user.id},
+        )
         score_exists = (
-            await app.state.services.database.fetch_val(
-                f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
-                {"checksum": score.online_checksum},
+            await primary.fetch_val(
+                f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum AND userid = :userid",
+                {"checksum": score.online_checksum, "userid": user.id},
             )
         ) is not None
 
         if score_exists:
             return Response(b"error: no")
 
-        score.pp, score.sr = await app.usecases.performance.calculate_performance(
-            beatmap_id=beatmap.id,
-            beatmap_md5=beatmap.md5,
-            mode=score.mode,
-            mods=score.mods.value,
-            max_combo=score.max_combo,
-            accuracy=score.acc,
-            miss_count=score.nmiss,
+        previous_best = await app.usecases.leaderboards.fetch_personal_best(
+            beatmap,
+            score.mode,
+            requestee_user_id=user.id,
+            vanilla_pp_leaderboards=False,
+            primary=True,
         )
-
         score.status = app.usecases.score.calculate_status(score, previous_best)
         score.time_elapsed = score_time
 
         if score.status == ScoreStatus.BEST:
-            await app.state.services.database.execute(
+            await primary.execute(
                 f"""\
                 UPDATE {score.mode.scores_table}
                    SET completed = 2
@@ -282,7 +296,7 @@ async def submit_score(
                 },
             )
 
-        score.id = await app.state.services.database.execute(
+        score.id = await primary.execute(
             (
                 # TODO: add playtime
                 f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "

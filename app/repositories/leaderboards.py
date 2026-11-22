@@ -139,6 +139,8 @@ async def fetch_user_score(
     mods_filter: int | None = None,
     best_scores_only: bool = True,
     sort_column: Literal["pp", "score"] = "pp",
+    *,
+    primary: bool = False,
 ) -> LeaderboardScore | None:
     params = {
         "beatmap_md5": beatmap_md5,
@@ -203,9 +205,11 @@ async def fetch_user_score(
         LIMIT 1
     """
 
-    score_record = await app.state.services.database.fetch_one(query, params)
+    database = app.state.services.database
+    connection = database.write_database if primary else database.read_database
+    score_record = await connection.fetch_one(query, params)
     return (
-        cast(LeaderboardScore, dict(score_record)) if score_record is not None else None
+        cast(LeaderboardScore, dict(score_record._mapping)) if score_record is not None else None
     )
 
 

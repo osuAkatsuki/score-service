@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from enum import IntEnum
+from enum import IntFlag
 
 
-class LastFMFlags(IntEnum):
+class LastFMFlags(IntFlag):
     """Bitwise enum flags for osu's LastFM anticheat flags (aka `BadFlags`)."""
 
     # 2016 Anticheat (from source)
