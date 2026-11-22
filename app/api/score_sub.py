@@ -492,6 +492,9 @@ async def submit_score(
             mods=score.mods.value,
             passed=score.passed,
             team=multiplayer_details.team,
+            beatmap_id=beatmap.id,
+            submitted_at=score.time,
+            map_hit_length=beatmap.hit_length,
         )
 
     if previous_best is not None:
